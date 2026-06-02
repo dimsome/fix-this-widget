@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { describeFeedbackElement } from '../src/elementMetadata';
 
-describe('global feedback element metadata', () => {
+describe('fix-this-widget element metadata', () => {
   it('describes picked data-od elements without capturing DOM markup', () => {
     const button = document.createElement('button');
     button.setAttribute('data-od-id', 'hero-submit-button');

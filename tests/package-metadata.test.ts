@@ -5,6 +5,13 @@ import { describe, expect, it } from 'vitest';
 type PackageJson = {
   name?: string;
   private?: boolean;
+  description?: string;
+  license?: string;
+  repository?: { type?: string; url?: string };
+  homepage?: string;
+  bugs?: { url?: string };
+  keywords?: string[];
+  publishConfig?: { access?: string };
   scripts?: Record<string, string>;
   exports?: Record<string, unknown>;
   main?: string;
@@ -20,11 +27,21 @@ function readPackageJson(): PackageJson {
 }
 
 describe('package metadata', () => {
-  it('names the standalone package and leaves publishing as a human step', () => {
+  it('names a public scoped package and leaves publishing as a human step', () => {
     const pkg = readPackageJson();
 
     expect(pkg.name).toBe('@dimsome/fix-this-widget');
     expect(pkg.private).not.toBe(true);
+    expect(pkg.description).toMatch(/Standalone React feedback widget/);
+    expect(pkg.license).toBe('MIT');
+    expect(pkg.publishConfig).toEqual({ access: 'public' });
+    expect(pkg.repository).toEqual({
+      type: 'git',
+      url: 'git+https://github.com/dimsome/fix-this-widget.git',
+    });
+    expect(pkg.homepage).toBe('https://github.com/dimsome/fix-this-widget#readme');
+    expect(pkg.bugs).toEqual({ url: 'https://github.com/dimsome/fix-this-widget/issues' });
+    expect(pkg.keywords).toEqual(expect.arrayContaining(['react', 'feedback', 'widget', 'fix-request', 'element-picker']));
     expect(pkg.scripts?.publish).toBeUndefined();
   });
 

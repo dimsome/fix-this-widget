@@ -67,7 +67,7 @@ function feedbackWidgetReducer(state: FeedbackWidgetState, action: FeedbackWidge
   }
 }
 
-export function useGlobalFeedbackFormState() {
+export function useFixThisWidgetFormState() {
   const [state, dispatch] = useReducer(feedbackWidgetReducer, initialFeedbackWidgetState);
   const noteIsEmpty = state.note.trim().length === 0;
 

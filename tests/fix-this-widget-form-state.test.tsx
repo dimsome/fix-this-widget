@@ -32,7 +32,7 @@ function renderFeedbackForm(overrides: FormOverrides = {}) {
   return props;
 }
 
-describe('global feedback form states', () => {
+describe('fix-this-widget form states', () => {
   it('keeps an empty-note form submittable while marking it aria-disabled', () => {
     const props = renderFeedbackForm({ message: 'Write a short note first, then we can send it.' });
 
@@ -40,7 +40,7 @@ describe('global feedback form states', () => {
     expect(sendButton).toHaveAttribute('aria-disabled', 'true');
     expect(sendButton).not.toBeDisabled();
     expect(screen.getByText('Write a short note first, then we can send it.')).toBeInTheDocument();
-    expect(screen.getByTestId('global-feedback-form-caveat')).toHaveTextContent('Not account support, recovery, or trading advice.');
+    expect(screen.getByTestId('fix-this-widget-form-caveat')).toHaveTextContent('Not account support, recovery, or trading advice.');
 
     fireEvent.change(screen.getByLabelText(/^Your feedback$/i), { target: { value: 'Helpful note' } });
     fireEvent.change(screen.getByLabelText(/^Email/i), { target: { value: 'dimitri@example.com' } });

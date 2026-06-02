@@ -37,7 +37,7 @@ function makeRect(top: number, height: number): DOMRect {
   } as DOMRect;
 }
 
-describe('global feedback widget package', () => {
+describe('fix-this-widget package', () => {
   beforeEach(() => {
     document.title = 'Landing | WTF is this tx?';
     window.history.pushState({}, '', '/?from=test');
@@ -61,8 +61,8 @@ describe('global feedback widget package', () => {
 
     fireEvent.scroll(window);
 
-    expect(document.querySelector('[data-global-feedback-widget]')).toHaveStyle({
-      '--global-feedback-footer-offset': '60px',
+    expect(document.querySelector('[data-fix-this-widget]')).toHaveStyle({
+      '--fix-this-widget-footer-offset': '60px',
     });
   });
 
@@ -76,7 +76,7 @@ describe('global feedback widget package', () => {
     const sendButton = within(dialog).getByRole('button', { name: /^Send feedback$/i });
     expect(sendButton).not.toBeDisabled();
 
-    const caveat = screen.getByTestId('global-feedback-form-caveat');
+    const caveat = screen.getByTestId('fix-this-widget-form-caveat');
     expect(caveat.querySelector('strong')).toHaveTextContent('We read every note.');
     expect(caveat.querySelector('br')).toBeInTheDocument();
     expect(caveat).toHaveTextContent('Useful feedback can trigger agents to fix or improve this app.');
@@ -123,7 +123,7 @@ describe('global feedback widget package', () => {
     expect(screen.getByRole('status')).not.toHaveTextContent('—');
     expect(screen.getByRole('status')).toHaveTextContent('Thanks. We read every note.');
     expect(screen.getByRole('status')).toHaveTextContent('If it shows a gap, agents can add an interpreter or improve the explanation for future visitors.');
-    expect(screen.getByTestId('global-feedback-success-caveat').querySelector('br')).toBeInTheDocument();
+    expect(screen.getByTestId('fix-this-widget-success-caveat').querySelector('br')).toBeInTheDocument();
     expect(screen.getByRole('dialog', { name: /^Send feedback$/i })).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: /^Send another$/i }));
@@ -206,9 +206,9 @@ describe('global feedback widget package', () => {
     expect(screen.getByText(/Point at an element, then click to attach it/i)).toBeInTheDocument();
 
     fireEvent.mouseMove(screen.getByRole('button', { name: /^Analyze transaction$/i }), { clientX: 24, clientY: 24 });
-    expect(screen.getByTestId('global-feedback-floatlabel')).toHaveTextContent('Hero submit button');
-    expect(screen.getByTestId('global-feedback-floatlabel')).toHaveTextContent('Button');
-    expect(screen.getByTestId('global-feedback-highlight')).toBeInTheDocument();
+    expect(screen.getByTestId('fix-this-widget-floatlabel')).toHaveTextContent('Hero submit button');
+    expect(screen.getByTestId('fix-this-widget-floatlabel')).toHaveTextContent('Button');
+    expect(screen.getByTestId('fix-this-widget-highlight')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: /^Analyze transaction$/i }));
     expect(screen.getByText('Hero submit button · Button')).toBeInTheDocument();
@@ -225,7 +225,7 @@ describe('global feedback widget package', () => {
       selector: '[data-od-id="hero-submit-button"]',
       text: 'Analyze transaction',
     });
-    expect(JSON.stringify(payload.element)).not.toMatch(/outerHTML|innerHTML|<button|data-global-feedback-widget/i);
+    expect(JSON.stringify(payload.element)).not.toMatch(/outerHTML|innerHTML|<button|data-fix-this-widget/i);
 
     fireEvent.click(screen.getByRole('button', { name: /^Send another$/i }));
     fireEvent.click(screen.getByRole('button', { name: /^＋ Point at an element$/i }));
@@ -234,18 +234,18 @@ describe('global feedback widget package', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /^＋ Point at an element$/i }));
     fireEvent.click(screen.getByRole('button', { name: /^Feedback$/i }));
-    expect(screen.queryByText(/Global feedback widget ·/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Fix this widget ·/i)).not.toBeInTheDocument();
   });
 
   it('ships desktop popover, mobile bottom-sheet, picker overlay, z-index, and host-token fallbacks in the CSS sidecar', () => {
     const css = readFileSync(join(process.cwd(), 'src', 'styles.css'), 'utf8');
 
-    expect(css).toMatch(/\.global-feedback\s*\{[\s\S]*--global-feedback-footer-offset:\s*0px;/);
-    expect(css).toMatch(/\.global-feedback-trigger\s*\{[\s\S]*position:\s*fixed;[\s\S]*bottom:\s*calc\(24px\s*\+\s*var\(--global-feedback-footer-offset,\s*0px\)\);[\s\S]*right:\s*24px;[\s\S]*min-height:\s*var\(--tap-min,\s*44px\);/);
-    expect(css).toMatch(/\.global-feedback-panel\s*\{[\s\S]*bottom:\s*calc\(80px\s*\+\s*var\(--global-feedback-footer-offset,\s*0px\)\);[\s\S]*width:\s*360px;[\s\S]*max-height:\s*calc\(100vh\s*-\s*96px\s*-\s*var\(--global-feedback-footer-offset,\s*0px\)\);[\s\S]*overflow-y:\s*auto;/);
-    expect(css).toMatch(/@media\s*\(max-width:\s*640px\)\s*\{[\s\S]*\.global-feedback-panel\s*\{[\s\S]*left:\s*0;[\s\S]*right:\s*0;[\s\S]*bottom:\s*0;[\s\S]*width:\s*100%;[\s\S]*max-width:\s*100%;[\s\S]*border-radius:\s*var\(--r-xl,\s*24px\)\s+var\(--r-xl,\s*24px\)\s+0\s+0;/);
-    expect(css).toMatch(/\.global-feedback-overlay\s*\{[\s\S]*position:\s*fixed;[\s\S]*z-index:\s*1002;/);
-    expect(css).toMatch(/\.global-feedback-highlight\s*\{[\s\S]*z-index:\s*1003;[\s\S]*border:\s*2px\s+solid\s+var\(--primary,\s*#1D7A8C\);/);
+    expect(css).toMatch(/\.fix-this-widget\s*\{[\s\S]*--fix-this-widget-footer-offset:\s*0px;/);
+    expect(css).toMatch(/\.fix-this-widget-trigger\s*\{[\s\S]*position:\s*fixed;[\s\S]*bottom:\s*calc\(24px\s*\+\s*var\(--fix-this-widget-footer-offset,\s*0px\)\);[\s\S]*right:\s*24px;[\s\S]*min-height:\s*var\(--tap-min,\s*44px\);/);
+    expect(css).toMatch(/\.fix-this-widget-panel\s*\{[\s\S]*bottom:\s*calc\(80px\s*\+\s*var\(--fix-this-widget-footer-offset,\s*0px\)\);[\s\S]*width:\s*360px;[\s\S]*max-height:\s*calc\(100vh\s*-\s*96px\s*-\s*var\(--fix-this-widget-footer-offset,\s*0px\)\);[\s\S]*overflow-y:\s*auto;/);
+    expect(css).toMatch(/@media\s*\(max-width:\s*640px\)\s*\{[\s\S]*\.fix-this-widget-panel\s*\{[\s\S]*left:\s*0;[\s\S]*right:\s*0;[\s\S]*bottom:\s*0;[\s\S]*width:\s*100%;[\s\S]*max-width:\s*100%;[\s\S]*border-radius:\s*var\(--r-xl,\s*24px\)\s+var\(--r-xl,\s*24px\)\s+0\s+0;/);
+    expect(css).toMatch(/\.fix-this-widget-overlay\s*\{[\s\S]*position:\s*fixed;[\s\S]*z-index:\s*1002;/);
+    expect(css).toMatch(/\.fix-this-widget-highlight\s*\{[\s\S]*z-index:\s*1003;[\s\S]*border:\s*2px\s+solid\s+var\(--primary,\s*#1D7A8C\);/);
     expect(css).toContain('var(--surface, #fff)');
     expect(css).toContain('var(--shadow-3, 0 20px 50px rgba(16, 20, 24, .18))');
   });

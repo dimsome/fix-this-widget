@@ -66,6 +66,7 @@ export type PickerHighlight = {
   type: FeedbackElementType;
 };
 
+// Transitional compatibility aliases for older host apps. Prefer FixThisWidget* names.
 export type GlobalFeedbackContext = FixThisWidgetContext;
 export type SubmitGlobalFeedback = SubmitFixThisWidgetFeedback;
 export type GlobalFeedbackWidgetProps = FixThisWidgetProps;

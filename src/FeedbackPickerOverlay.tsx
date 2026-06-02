@@ -7,18 +7,18 @@ export type FeedbackPickerOverlayProps = {
 
 export function FeedbackPickerOverlay({ highlight, onCancel }: FeedbackPickerOverlayProps) {
   return (
-    <div className="global-feedback-overlay">
-      <div className="global-feedback-scrim" />
+    <div className="fix-this-widget-overlay">
+      <div className="fix-this-widget-scrim" />
       {highlight ? (
         <>
           <div
-            className="global-feedback-highlight"
-            data-testid="global-feedback-highlight"
+            className="fix-this-widget-highlight"
+            data-testid="fix-this-widget-highlight"
             style={{ top: highlight.top, left: highlight.left, width: highlight.width, height: highlight.height }}
           />
           <div
-            className="global-feedback-floatlabel"
-            data-testid="global-feedback-floatlabel"
+            className="fix-this-widget-floatlabel"
+            data-testid="fix-this-widget-floatlabel"
             style={{ top: highlight.y + 14, left: highlight.x + 14 }}
           >
             <span>{highlight.label}</span>
@@ -26,7 +26,7 @@ export function FeedbackPickerOverlay({ highlight, onCancel }: FeedbackPickerOve
           </div>
         </>
       ) : null}
-      <div className="global-feedback-instruction">
+      <div className="fix-this-widget-instruction">
         <span>Point at an element, then click to attach it. Press <strong>Esc</strong> to cancel.</span>
         <button type="button" onClick={onCancel}>Cancel</button>
       </div>
