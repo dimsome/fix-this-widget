@@ -1,8 +1,7 @@
-export { FixThisWidget, GlobalFeedbackWidget } from './FixThisWidget';
+export { FixThisWidget } from './FixThisWidget';
 export type {
   FeedbackElementMetadata,
   FeedbackElementType,
-  FeedbackResponse,
   FixThisWidgetContext,
   FixThisWidgetFeedbackPayload,
   FixThisWidgetFeedbackResponse,
@@ -10,8 +9,5 @@ export type {
   FixThisWidgetPageMetadata,
   FixThisWidgetProps,
   FixThisWidgetViewportMetadata,
-  GlobalFeedbackContext,
-  GlobalFeedbackWidgetProps,
   SubmitFixThisWidgetFeedback,
-  SubmitGlobalFeedback,
 } from './types';

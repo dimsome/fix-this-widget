@@ -3,7 +3,8 @@ import { join } from 'node:path';
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { FixThisWidget, GlobalFeedbackWidget } from '../src';
+import * as widgetPackage from '../src';
+import { FixThisWidget } from '../src';
 import type { FixThisWidgetFeedbackResponse, SubmitFixThisWidgetFeedback } from '../src';
 
 function feedbackResponse(note = 'Saved'): FixThisWidgetFeedbackResponse {
@@ -44,8 +45,9 @@ describe('fix-this-widget package', () => {
     setViewport(1280, 720);
   });
 
-  it('exports FixThisWidget as the primary component with a GlobalFeedbackWidget compatibility alias', () => {
-    expect(GlobalFeedbackWidget).toBe(FixThisWidget);
+  it('exports FixThisWidget without legacy GlobalFeedback aliases', () => {
+    expect(widgetPackage.FixThisWidget).toBe(FixThisWidget);
+    expect(widgetPackage).not.toHaveProperty('GlobalFeedbackWidget');
   });
 
   it('raises the floating feedback control above the default footer selector when the footer enters the viewport', () => {
@@ -91,7 +93,7 @@ describe('fix-this-widget package', () => {
     expect(sendButton).not.toBeDisabled();
   });
 
-  it('submits global-widget metadata through the host adapter prop and keeps success visible until Send another or Close this feedback', async () => {
+  it('submits fix-this-widget metadata through the host adapter prop and keeps success visible until Send another or Close this feedback', async () => {
     const submitFeedback = makeSubmitFeedback(feedbackResponse('The FAQ copy is confusing.'));
 
     render(<FixThisWidget submitFeedback={submitFeedback} />);
@@ -147,7 +149,7 @@ describe('fix-this-widget package', () => {
       sessionId: 'session-widget-1',
     }));
 
-    render(<FixThisWidget submitFeedback={submitFeedback} enableElementPicker={false} getContext={getContext} feedbackSource="global_widget" />);
+    render(<FixThisWidget submitFeedback={submitFeedback} enableElementPicker={false} getContext={getContext} feedbackSource="host_widget" />);
     fireEvent.click(screen.getByRole('button', { name: /^Feedback$/i }));
 
     expect(screen.queryByRole('button', { name: /^＋ Point at an element$/i })).not.toBeInTheDocument();
@@ -156,7 +158,7 @@ describe('fix-this-widget package', () => {
 
     await waitFor(() => expect(submitFeedback).toHaveBeenCalledTimes(1));
     expect(submittedBodies(submitFeedback)[0]).toMatchObject({
-      source: 'global_widget',
+      source: 'host_widget',
       note: 'Context override works.',
       page: { url: 'https://example.test/custom', title: 'Custom page' },
       viewport: { w: 390, h: 844 },

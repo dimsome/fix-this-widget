@@ -18,7 +18,7 @@ export interface FixThisWidgetViewportMetadata {
   h: number;
 }
 
-export type FixThisWidgetFeedbackSource = 'fix_this_widget' | 'global_widget' | (string & {});
+export type FixThisWidgetFeedbackSource = 'fix_this_widget' | (string & {});
 
 export interface FixThisWidgetFeedbackPayload {
   source: FixThisWidgetFeedbackSource;
@@ -65,9 +65,3 @@ export type PickerHighlight = {
   label: string;
   type: FeedbackElementType;
 };
-
-// Transitional compatibility aliases for older host apps. Prefer FixThisWidget* names.
-export type GlobalFeedbackContext = FixThisWidgetContext;
-export type SubmitGlobalFeedback = SubmitFixThisWidgetFeedback;
-export type GlobalFeedbackWidgetProps = FixThisWidgetProps;
-export type FeedbackResponse = FixThisWidgetFeedbackResponse;

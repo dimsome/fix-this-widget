@@ -165,6 +165,3 @@ export function FixThisWidget({
     </div>
   );
 }
-
-// Transitional compatibility alias for older host apps. Prefer FixThisWidget.
-export const GlobalFeedbackWidget = FixThisWidget;
