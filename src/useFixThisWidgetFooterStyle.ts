@@ -35,7 +35,7 @@ function subscribeToFooterChanges(siteFooterSelector: string, onStoreChange: Sto
   };
 }
 
-export function useGlobalFeedbackFooterStyle(siteFooterSelector = SITE_FOOTER_SELECTOR): CSSProperties | undefined {
+export function useFixThisWidgetFooterStyle(siteFooterSelector = SITE_FOOTER_SELECTOR): CSSProperties | undefined {
   const subscribe = useCallback(
     (onStoreChange: StoreSubscriber) => subscribeToFooterChanges(siteFooterSelector, onStoreChange),
     [siteFooterSelector],
@@ -44,6 +44,6 @@ export function useGlobalFeedbackFooterStyle(siteFooterSelector = SITE_FOOTER_SE
   const footerOffset = useSyncExternalStore(subscribe, getSnapshot, () => 0);
 
   return footerOffset > 0
-    ? ({ '--global-feedback-footer-offset': `${footerOffset}px` } as CSSProperties)
+    ? ({ '--fix-this-widget-footer-offset': `${footerOffset}px` } as CSSProperties)
     : undefined;
 }

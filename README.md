@@ -6,15 +6,23 @@ Package name: `@dimsome/fix-this-widget`
 
 ## Status
 
-This repo contains a buildable package extraction. It is not published. Publishing is a human step and should not be performed by agents.
+This repo contains a buildable package that is prepared for public npm publishing. It is not published yet. Publishing is a human step and should not be performed by agents.
 
-## Install from a local checkout
+Recommended npm target: `@dimsome/fix-this-widget` with public scoped access. The unscoped `fix-this-widget` name also returns 404 on npm today, but the scoped package keeps ownership clear under the `@dimsome` namespace and avoids occupying a generic global name.
+
+## Install
+
+After the first approved npm release:
+
+```bash
+npm install @dimsome/fix-this-widget
+```
+
+Before release, consume it from a local checkout, Git branch, or packed tarball after review:
 
 ```bash
 npm install /path/to/fix-this-widget
 ```
-
-Or consume it from a branch or packed tarball after human review.
 
 ## Usage
 
@@ -46,13 +54,15 @@ function App() {
 
 `FixThisWidget` defaults to a compact payload source of `fix_this_widget`. If a host app needs to preserve an existing backend contract during migration, pass `feedbackSource="global_widget"` or map the payload inside `submitFeedback`.
 
-A compatibility alias is exported for migration:
+## Compatibility alias
+
+`GlobalFeedbackWidget` and the related `GlobalFeedback*` TypeScript aliases are exported only to ease migrations from older host apps:
 
 ```tsx
 import { GlobalFeedbackWidget } from '@dimsome/fix-this-widget';
 ```
 
-Prefer `FixThisWidget` for new code.
+Prefer `FixThisWidget` names for all new code. Treat the compatibility aliases as transitional API surface.
 
 ## Props
 
@@ -76,7 +86,7 @@ This package owns only the widget UI and client boundary. It does not include:
 - Database or persistence code
 - Local storage or anonymous client ID ownership
 - DOM capture, HTML dumps, screenshots, wallet state, hidden data, or full-page snapshots
-- WTF-specific API calls
+- Host-app-specific transport or API calls
 - Publishing automation
 
 The host app owns transport, authentication, client/session IDs, persistence, logging, and any backend validation.
@@ -85,10 +95,39 @@ The host app owns transport, authentication, client/session IDs, persistence, lo
 
 ```bash
 npm install
+npm test
 npm run typecheck
 npm run lint
-npm test
 npm run build
+npm pack --dry-run --json
 ```
 
-`npm run build` emits ESM JavaScript, declaration files, and `dist/styles.css`. Do not run `npm publish` from automation.
+`npm run build` emits ESM JavaScript, declaration files, and `dist/styles.css`.
+
+## Release checklist
+
+Do not publish from automation. For a human release:
+
+1. Confirm the PR is reviewed and merged.
+2. Confirm npm auth can publish under the `@dimsome` scope:
+   ```bash
+   npm whoami
+   npm access ls-packages @dimsome
+   ```
+3. Re-run the local release gates:
+   ```bash
+   npm install
+   npm test
+   npm run typecheck
+   npm run lint
+   npm run build
+   npm pack --dry-run --json
+   ```
+4. Inspect the dry-run tarball contents. It should contain only package metadata, README, and built `dist` files.
+5. Publish the scoped public package only after explicit approval:
+   ```bash
+   npm publish --access public
+   ```
+6. After publishing, update host apps to depend on `@dimsome/fix-this-widget` from npm instead of a local vendored package.
+
+Rollback if a bad version ships: deprecate the version with `npm deprecate @dimsome/fix-this-widget@<version> "reason"`, publish a fixed patch version, and update consuming apps to the patched version.

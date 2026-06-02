@@ -6,9 +6,9 @@ import { FeedbackForm } from './FeedbackForm';
 import { FeedbackPickerOverlay } from './FeedbackPickerOverlay';
 import { FeedbackSuccess } from './FeedbackSuccess';
 import type { FixThisWidgetContext, FixThisWidgetProps } from './types';
-import { SITE_FOOTER_SELECTOR, useGlobalFeedbackFooterStyle } from './useGlobalFeedbackFooterStyle';
-import { useGlobalFeedbackFormState } from './useGlobalFeedbackFormState';
-import { useGlobalFeedbackPicker } from './useGlobalFeedbackPicker';
+import { SITE_FOOTER_SELECTOR, useFixThisWidgetFooterStyle } from './useFixThisWidgetFooterStyle';
+import { useFixThisWidgetFormState } from './useFixThisWidgetFormState';
+import { useFixThisWidgetPicker } from './useFixThisWidgetPicker';
 
 function defaultFixThisWidgetContext(): FixThisWidgetContext {
   return {
@@ -27,10 +27,10 @@ export function FixThisWidget({
 }: FixThisWidgetProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const noteRef = useRef<HTMLTextAreaElement>(null);
-  const rootStyle = useGlobalFeedbackFooterStyle(footerSelector);
-  const { state, noteIsEmpty, actions } = useGlobalFeedbackFormState();
+  const rootStyle = useFixThisWidgetFooterStyle(footerSelector);
+  const { state, noteIsEmpty, actions } = useFixThisWidgetFormState();
   const isSuccess = state.submitState === 'success';
-  const picker = useGlobalFeedbackPicker({
+  const picker = useFixThisWidgetPicker({
     rootRef,
     onAttach: actions.setAttached,
     onPanelOpenChange: actions.setOpen,
@@ -113,13 +113,13 @@ export function FixThisWidget({
   }
 
   return (
-    <div ref={rootRef} className="global-feedback" data-global-feedback-widget style={rootStyle}>
+    <div ref={rootRef} className="fix-this-widget" data-fix-this-widget style={rootStyle}>
       <button
         type="button"
-        className="global-feedback-trigger"
+        className="fix-this-widget-trigger"
         aria-haspopup="dialog"
         aria-expanded={state.open}
-        aria-controls="global-feedback-panel"
+        aria-controls="fix-this-widget-panel"
         onClick={() => {
           if (picker.picking) return;
           actions.toggleOpen();
@@ -132,10 +132,10 @@ export function FixThisWidget({
       </button>
 
       {state.open ? (
-        <div id="global-feedback-panel" className="global-feedback-panel" role="dialog" aria-modal="false" aria-labelledby="global-feedback-title">
-          <div className="global-feedback-panel-head">
-            <h2 id="global-feedback-title">Send feedback</h2>
-            <button type="button" className="global-feedback-close" aria-label="Close feedback" onClick={actions.closePanel}>×</button>
+        <div id="fix-this-widget-panel" className="fix-this-widget-panel" role="dialog" aria-modal="false" aria-labelledby="fix-this-widget-title">
+          <div className="fix-this-widget-panel-head">
+            <h2 id="fix-this-widget-title">Send feedback</h2>
+            <button type="button" className="fix-this-widget-close" aria-label="Close feedback" onClick={actions.closePanel}>×</button>
           </div>
 
           {isSuccess ? (
@@ -166,4 +166,5 @@ export function FixThisWidget({
   );
 }
 
+// Transitional compatibility alias for older host apps. Prefer FixThisWidget.
 export const GlobalFeedbackWidget = FixThisWidget;

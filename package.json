@@ -4,6 +4,24 @@
   "description": "Standalone React feedback widget for collecting fix requests from a host app.",
   "type": "module",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dimsome/fix-this-widget.git"
+  },
+  "homepage": "https://github.com/dimsome/fix-this-widget#readme",
+  "bugs": {
+    "url": "https://github.com/dimsome/fix-this-widget/issues"
+  },
+  "keywords": [
+    "react",
+    "feedback",
+    "widget",
+    "fix-request",
+    "element-picker"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
   "sideEffects": [
     "./dist/styles.css"
   ],

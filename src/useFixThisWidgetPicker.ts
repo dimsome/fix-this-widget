@@ -3,7 +3,7 @@ import type { RefObject } from 'react';
 import type { FeedbackElementMetadata, PickerHighlight } from './types';
 import { describeFeedbackElement } from './elementMetadata';
 
-type UseGlobalFeedbackPickerOptions = {
+type UseFixThisWidgetPickerOptions = {
   rootRef: RefObject<HTMLElement | null>;
   onAttach: (element: FeedbackElementMetadata) => void;
   onPanelOpenChange: (open: boolean) => void;
@@ -13,7 +13,7 @@ function targetElement(event: Event): Element | null {
   return event.target instanceof Element ? event.target : null;
 }
 
-export function useGlobalFeedbackPicker({ rootRef, onAttach, onPanelOpenChange }: UseGlobalFeedbackPickerOptions) {
+export function useFixThisWidgetPicker({ rootRef, onAttach, onPanelOpenChange }: UseFixThisWidgetPickerOptions) {
   const currentPickerElementRef = useRef<Element | null>(null);
   const [picking, setPicking] = useState(false);
   const [highlight, setHighlight] = useState<PickerHighlight | null>(null);
