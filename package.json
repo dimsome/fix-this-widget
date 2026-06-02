@@ -1,0 +1,55 @@
+{
+  "name": "@dimsome/fix-this-widget",
+  "version": "0.1.0",
+  "description": "Standalone React feedback widget for collecting fix requests from a host app.",
+  "type": "module",
+  "license": "MIT",
+  "sideEffects": [
+    "./dist/styles.css"
+  ],
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./styles.css": "./dist/styles.css",
+    "./element-metadata": {
+      "types": "./dist/elementMetadata.d.ts",
+      "import": "./dist/elementMetadata.js"
+    }
+  },
+  "peerDependencies": {
+    "react": ">=19.2.0 <20.0.0",
+    "react-dom": ">=19.2.0 <20.0.0"
+  },
+  "devDependencies": {
+    "@testing-library/dom": "10.4.1",
+    "@testing-library/jest-dom": "6.9.1",
+    "@testing-library/react": "16.3.2",
+    "@types/node": "24.12.4",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "@typescript-eslint/eslint-plugin": "8.59.3",
+    "@typescript-eslint/parser": "8.59.3",
+    "eslint": "9.39.4",
+    "jsdom": "29.1.1",
+    "react": "19.2.6",
+    "react-dom": "19.2.6",
+    "tsup": "8.5.0",
+    "typescript": "6.0.3",
+    "vitest": "4.1.6"
+  },
+  "scripts": {
+    "build": "tsup src/index.ts src/elementMetadata.ts --format esm --dts --out-dir dist --clean --external react --external react-dom && node scripts/copy-assets.mjs",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run"
+  }
+}

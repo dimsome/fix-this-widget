@@ -1,0 +1,62 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { describe, expect, it } from 'vitest';
+
+type PackageJson = {
+  name?: string;
+  private?: boolean;
+  scripts?: Record<string, string>;
+  exports?: Record<string, unknown>;
+  main?: string;
+  module?: string;
+  types?: string;
+  peerDependencies?: Record<string, string>;
+  dependencies?: Record<string, string>;
+  devDependencies?: Record<string, string>;
+};
+
+function readPackageJson(): PackageJson {
+  return JSON.parse(readFileSync(join(process.cwd(), 'package.json'), 'utf8')) as PackageJson;
+}
+
+describe('package metadata', () => {
+  it('names the standalone package and leaves publishing as a human step', () => {
+    const pkg = readPackageJson();
+
+    expect(pkg.name).toBe('@dimsome/fix-this-widget');
+    expect(pkg.private).not.toBe(true);
+    expect(pkg.scripts?.publish).toBeUndefined();
+  });
+
+  it('exports built ESM, declarations, CSS, and element metadata instead of raw TS', () => {
+    const pkg = readPackageJson();
+
+    expect(pkg.main).toBe('./dist/index.js');
+    expect(pkg.module).toBe('./dist/index.js');
+    expect(pkg.types).toBe('./dist/index.d.ts');
+    expect(pkg.exports?.['.']).toEqual({
+      types: './dist/index.d.ts',
+      import: './dist/index.js',
+    });
+    expect(pkg.exports?.['./styles.css']).toBe('./dist/styles.css');
+    expect(pkg.exports?.['./element-metadata']).toEqual({
+      types: './dist/elementMetadata.d.ts',
+      import: './dist/elementMetadata.js',
+    });
+    expect(pkg.scripts?.build).toContain('tsup');
+    expect(pkg.scripts?.build).not.toContain('tsc --noEmit');
+  });
+
+  it('uses React 19 peers and no private WTF dependency', () => {
+    const pkg = readPackageJson();
+    const dependencyNames = [
+      ...Object.keys(pkg.dependencies ?? {}),
+      ...Object.keys(pkg.devDependencies ?? {}),
+      ...Object.keys(pkg.peerDependencies ?? {}),
+    ];
+
+    expect(pkg.peerDependencies?.react).toBe('>=19.2.0 <20.0.0');
+    expect(pkg.peerDependencies?.['react-dom']).toBe('>=19.2.0 <20.0.0');
+    expect(dependencyNames.filter((name) => name.startsWith('@wtf-is-this-tx/'))).toEqual([]);
+  });
+});
