@@ -27,7 +27,7 @@ function readPackageJson(): PackageJson {
 }
 
 describe('package metadata', () => {
-  it('names a public scoped package and leaves publishing as a human step', () => {
+  it('declares scoped public package metadata without a publish script', () => {
     const pkg = readPackageJson();
 
     expect(pkg.name).toBe('@dimsome/fix-this-widget');
