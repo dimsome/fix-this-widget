@@ -67,7 +67,7 @@ function isForbiddenImport(specifier: string): boolean {
 }
 
 describe('fix-this-widget package boundary', () => {
-  it('keeps private WTF packages, host transport, Next routes, DB, persistence, storage, and DOM capture out of package source', () => {
+  it('keeps package source decoupled from host app runtime concerns', () => {
     const violations: string[] = [];
 
     for (const file of walk(srcRoot)) {
