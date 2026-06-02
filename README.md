@@ -66,16 +66,6 @@ When the element picker is enabled, the widget sends a small metadata object for
 
 Use `getContext` for any app-specific context you want attached to feedback submissions.
 
-## Migration aliases
-
-`GlobalFeedbackWidget` and the related `GlobalFeedback*` TypeScript aliases remain available for older host apps:
-
-```tsx
-import { GlobalFeedbackWidget } from '@dimsome/fix-this-widget';
-```
-
-Prefer `FixThisWidget` names for new code.
-
 ## Exports
 
 - `@dimsome/fix-this-widget`: React component and TypeScript types
