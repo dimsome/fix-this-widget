@@ -12,11 +12,7 @@
 npm whoami
 npm access ls-packages @dimsome
 npm install
-npm test
-npm run typecheck
-npm run lint
-npm run build
-npm pack --dry-run --json
+npm run check
 ```
 
 Inspect the dry-run output before publishing. The package should contain `package.json`, `README.md`, and built `dist` files only.

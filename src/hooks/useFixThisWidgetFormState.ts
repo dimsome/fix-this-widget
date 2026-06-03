@@ -1,6 +1,6 @@
 import { useCallback, useReducer } from 'react';
-import type { FeedbackElementMetadata, FeedbackSubmitState } from './types';
-import { EMPTY_NOTE_MESSAGE } from './copy';
+import type { FeedbackElementMetadata, FeedbackSubmitState } from '../shared/types';
+import { EMPTY_NOTE_MESSAGE } from '../shared/copy';
 
 type FeedbackWidgetState = {
   open: boolean;

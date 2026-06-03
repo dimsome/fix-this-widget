@@ -1,8 +1,10 @@
 import type { FormEventHandler, Ref } from 'react';
-import type { FeedbackElementMetadata, FeedbackSubmitState } from './types';
+import type { FeedbackElementMetadata, FeedbackSubmitState } from '../shared/types';
 import { FeedbackCaveat } from './FeedbackCaveat';
 
 export type FeedbackFormProps = {
+  noteId: string;
+  emailId: string;
   note: string;
   email: string;
   attached: FeedbackElementMetadata | null;
@@ -18,6 +20,8 @@ export type FeedbackFormProps = {
 };
 
 export function FeedbackForm({
+  noteId,
+  emailId,
   note,
   email,
   attached,
@@ -36,10 +40,11 @@ export function FeedbackForm({
   return (
     <form noValidate onSubmit={onSubmit}>
       <div className="fix-this-widget-field">
-        <label className="fix-this-widget-label" htmlFor="fix-this-widget-note">Your feedback</label>
+        <label className="fix-this-widget-label" htmlFor={noteId}>Your feedback</label>
         <textarea
           ref={noteRef}
-          id="fix-this-widget-note"
+          id={noteId}
+          className="fix-this-widget-note"
           name="note"
           placeholder="What's working, or what's off?"
           value={note}
@@ -48,9 +53,10 @@ export function FeedbackForm({
       </div>
 
       <div className="fix-this-widget-field">
-        <label className="fix-this-widget-label" htmlFor="fix-this-widget-email">Email <span>(optional, if you'd like a reply)</span></label>
+        <label className="fix-this-widget-label" htmlFor={emailId}>Email <span>(optional, if you'd like a reply)</span></label>
         <input
-          id="fix-this-widget-email"
+          id={emailId}
+          className="fix-this-widget-email"
           name="email"
           type="email"
           placeholder="you@example.com"

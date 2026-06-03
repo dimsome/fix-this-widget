@@ -2,8 +2,8 @@ import { createRef } from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
-import type { FeedbackElementMetadata } from '../src';
-import { FeedbackForm } from '../src/FeedbackForm';
+import type { FeedbackElementMetadata } from '../../src';
+import { FeedbackForm } from '../../src/components/FeedbackForm';
 
 type FormOverrides = Partial<{
   note: string;
@@ -15,6 +15,8 @@ type FormOverrides = Partial<{
 
 function renderFeedbackForm(overrides: FormOverrides = {}) {
   const props = {
+    noteId: 'test-note',
+    emailId: 'test-email',
     note: overrides.note ?? '',
     email: overrides.email ?? '',
     attached: overrides.attached ?? null,
@@ -51,16 +53,21 @@ describe('fix-this-widget form states', () => {
 
   it('renders attached-element and submitting states without changing form ownership', () => {
     const attached: FeedbackElementMetadata = {
-      odId: 'hero-submit-button',
       label: 'Hero submit button',
       type: 'Button',
-      selector: '[data-od-id="hero-submit-button"]',
+      selector: '[data-feedback-id="hero-submit-button"]',
+      selectorCandidates: ['[data-feedback-id="hero-submit-button"]', 'button'],
       text: 'Analyze transaction',
+      context: {
+        path: 'button',
+        target: '<button data-feedback-id="hero-submit-button">Analyze transaction</button>',
+        parent: null,
+      },
     };
     const props = renderFeedbackForm({ note: 'Ready to submit', attached, submitState: 'submitting' });
 
     expect(screen.getByText('Hero submit button · Button')).toBeInTheDocument();
-    expect(screen.getByText('[data-od-id="hero-submit-button"]')).toBeInTheDocument();
+    expect(screen.getByText('[data-feedback-id="hero-submit-button"]')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /^Sending…$/i })).toBeDisabled();
 
     fireEvent.click(screen.getByRole('button', { name: /^Remove attached element$/i }));

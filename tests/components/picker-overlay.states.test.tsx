@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
-import { FeedbackPickerOverlay } from '../src/FeedbackPickerOverlay';
+import { FeedbackPickerOverlay } from '../../src/components/FeedbackPickerOverlay';
 
 describe('fix-this-widget picker overlay states', () => {
   it('shows picker instructions, cancel action, and highlighted target metadata', () => {

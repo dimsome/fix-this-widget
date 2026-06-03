@@ -1,11 +1,18 @@
 export type FeedbackElementType = 'Heading' | 'Button' | 'Link' | 'Input' | 'Card/Section' | 'Image' | 'Text';
 
+export interface FeedbackElementContext {
+  path: string;
+  target: string;
+  parent: string | null;
+}
+
 export interface FeedbackElementMetadata {
-  odId: string | null;
   label: string;
   type: FeedbackElementType;
   selector: string;
+  selectorCandidates: string[];
   text: string | null;
+  context: FeedbackElementContext;
 }
 
 export interface FixThisWidgetPageMetadata {
@@ -33,17 +40,17 @@ export interface FixThisWidgetFeedbackPayload {
 }
 
 export interface FixThisWidgetFeedbackResponse {
-  kind: 'feedback';
-  feedbackId: string;
-  created: boolean;
-  rating: 'good' | 'wrong' | 'unsure' | null;
-  note: string | null;
+  kind?: 'feedback';
+  feedbackId?: string;
+  created?: boolean;
+  rating?: 'good' | 'wrong' | 'unsure' | null;
+  note?: string | null;
 }
 
 export type FixThisWidgetContext = Pick<FixThisWidgetFeedbackPayload, 'page' | 'viewport' | 'ts'>
   & Partial<Pick<FixThisWidgetFeedbackPayload, 'requestId' | 'sessionId'>>;
 
-export type SubmitFixThisWidgetFeedback = (body: FixThisWidgetFeedbackPayload) => Promise<FixThisWidgetFeedbackResponse>;
+export type SubmitFixThisWidgetFeedback = (body: FixThisWidgetFeedbackPayload) => Promise<void | FixThisWidgetFeedbackResponse | unknown>;
 
 export type FixThisWidgetProps = {
   submitFeedback: SubmitFixThisWidgetFeedback;

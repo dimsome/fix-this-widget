@@ -4,6 +4,11 @@ Standalone React feedback widget for collecting compact, actionable fix requests
 
 Package name: `@dimsome/fix-this-widget`
 
+## Requirements
+
+- React `>=18.2.0 <21.0.0`
+- A client-rendered React surface. In Next.js App Router, render the widget from a client component.
+
 ## Install
 
 ```bash
@@ -34,27 +39,19 @@ function App() {
         });
 
         if (!response.ok) throw new Error('Feedback submission failed');
-
-        return {
-          kind: 'feedback',
-          feedbackId: 'server-generated-id',
-          created: true,
-          rating: null,
-          note: payload.note,
-        };
       }}
     />
   );
 }
 ```
 
-`submitFeedback` is the integration point. Your app decides where feedback goes, how requests are authenticated, and how submitted feedback is stored.
+`submitFeedback` is the integration point. Your app decides where feedback goes, how requests are authenticated, and how submitted feedback is stored. The callback may resolve with `void` or any host response; the widget only needs success or failure.
 
 ## Props
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
-| `submitFeedback` | `(payload) => Promise<FixThisWidgetFeedbackResponse>` | required | Sends the note, optional email, page context, viewport context, selected element metadata, timestamp, and optional request/session IDs. |
+| `submitFeedback` | `(payload) => Promise<void \| unknown>` | required | Sends the note, optional email, page context, viewport context, selected element metadata, timestamp, and optional request/session IDs. |
 | `footerSelector` | `string` | `[data-od-id="site-footer"]` | Keeps the floating control above a visible footer. |
 | `enableElementPicker` | `boolean` | `true` | Lets users point to the page element they want fixed. |
 | `feedbackSource` | `string` | `fix_this_widget` | Labels submitted feedback for your backend or analytics pipeline. |
@@ -62,9 +59,60 @@ function App() {
 
 ## Element picker data
 
-When the element picker is enabled, the widget sends a small metadata object for the selected element. It includes fields such as tag name, text label, role, test ID, stable selector hints, and bounding box. It does not serialize page HTML or screenshots.
+When the element picker is enabled, the widget sends bounded metadata for the selected element. It does not serialize the full page DOM and does not capture screenshots.
 
-Use `getContext` for any app-specific context you want attached to feedback submissions.
+The selector picker prefers public stable attributes in this order:
+
+1. `data-feedback-id`
+2. `data-testid`
+3. `data-test`
+4. `data-cy`
+5. `id`
+6. `aria-label`
+7. `name`
+8. `data-od-id` legacy fallback
+9. a short tag path fallback
+
+The attached element payload includes:
+
+- `label`: readable label for the target
+- `type`: coarse target type, such as `Button`, `Link`, `Input`, or `Card/Section`
+- `selector`: best selector candidate
+- `selectorCandidates`: fallback selector candidates
+- `text`: normalized visible text, capped at 80 characters
+- `context`: bounded sanitized snippets for the target and, when useful, a nearby landmark parent
+
+Only safe identifying attributes are included in context snippets. Class names, styles, arbitrary `data-*` attributes, full DOM markup, and screenshots are excluded.
+
+Use `data-feedback-id` on important UI elements if you want precise feedback attachments without exposing implementation-specific selectors.
+
+## Styling
+
+The stylesheet is required. It uses namespaced CSS custom properties so host apps can customize without relying on broad token names:
+
+```css
+.fix-this-widget {
+  --fix-this-widget-primary: #7c3aed;
+  --fix-this-widget-primary-hover: #6d28d9;
+  --fix-this-widget-surface: #fff;
+  --fix-this-widget-radius-xl: 24px;
+}
+```
+
+## Example app
+
+![fix-this-widget example app](./docs/assets/example-closed.png)
+
+A Vite example lives in [`examples/vite-react`](./examples/vite-react):
+
+```bash
+npm run build
+cd examples/vite-react
+npm install
+npm run dev
+```
+
+The example uses the local package via `file:../..` and logs submitted payloads to the browser console.
 
 ## Exports
 

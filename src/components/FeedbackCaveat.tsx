@@ -1,4 +1,4 @@
-import { CAVEAT_LINE, SUPPORT_CAVEAT } from './copy';
+import { CAVEAT_LINE, SUPPORT_CAVEAT } from '../shared/copy';
 
 export function FeedbackCaveat({ testId }: { testId: string }) {
   return (

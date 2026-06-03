@@ -2,7 +2,7 @@ import type { CSSProperties } from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
-import { useFixThisWidgetFooterStyle } from '../src/useFixThisWidgetFooterStyle';
+import { useFixThisWidgetFooterStyle } from '../../src/hooks/useFixThisWidgetFooterStyle';
 
 function setViewport(height: number): void {
   Object.defineProperty(window, 'innerHeight', { configurable: true, value: height });

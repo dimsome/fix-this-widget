@@ -1,4 +1,4 @@
-export { FixThisWidget } from './FixThisWidget';
+export { FixThisWidget } from './components/FixThisWidget';
 export type {
   FeedbackElementMetadata,
   FeedbackElementType,
@@ -10,4 +10,4 @@ export type {
   FixThisWidgetProps,
   FixThisWidgetViewportMetadata,
   SubmitFixThisWidgetFeedback,
-} from './types';
+} from './shared/types';

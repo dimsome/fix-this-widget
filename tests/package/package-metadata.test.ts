@@ -57,14 +57,14 @@ describe('package metadata', () => {
     });
     expect(pkg.exports?.['./styles.css']).toBe('./dist/styles.css');
     expect(pkg.exports?.['./element-metadata']).toEqual({
-      types: './dist/elementMetadata.d.ts',
-      import: './dist/elementMetadata.js',
+      types: './dist/metadata/elementMetadata.d.ts',
+      import: './dist/metadata/elementMetadata.js',
     });
     expect(pkg.scripts?.build).toContain('tsup');
     expect(pkg.scripts?.build).not.toContain('tsc --noEmit');
   });
 
-  it('uses React 19 peers and no private WTF dependency', () => {
+  it('supports React 18 through React 20 peers and no private WTF dependency', () => {
     const pkg = readPackageJson();
     const dependencyNames = [
       ...Object.keys(pkg.dependencies ?? {}),
@@ -72,8 +72,14 @@ describe('package metadata', () => {
       ...Object.keys(pkg.peerDependencies ?? {}),
     ];
 
-    expect(pkg.peerDependencies?.react).toBe('>=19.2.0 <20.0.0');
-    expect(pkg.peerDependencies?.['react-dom']).toBe('>=19.2.0 <20.0.0');
+    expect(pkg.peerDependencies?.react).toBe('>=18.2.0 <21.0.0');
+    expect(pkg.peerDependencies?.['react-dom']).toBe('>=18.2.0 <21.0.0');
     expect(dependencyNames.filter((name) => name.startsWith('@wtf-is-this-tx/'))).toEqual([]);
+  });
+
+  it('keeps the built React entry marked as a client component', () => {
+    const pkg = readPackageJson();
+
+    expect(pkg.scripts?.build).toContain('scripts/mark-client-entry.mjs');
   });
 });

@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useEffectEvent, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { RefObject } from 'react';
-import type { FeedbackElementMetadata, PickerHighlight } from './types';
-import { describeFeedbackElement } from './elementMetadata';
+import type { FeedbackElementMetadata, PickerHighlight } from '../shared/types';
+import { describeFeedbackElement } from '../metadata/elementMetadata';
+import { useStableEvent } from './useStableEvent';
 
 type UseFixThisWidgetPickerOptions = {
   rootRef: RefObject<HTMLElement | null>;
@@ -32,7 +33,7 @@ export function useFixThisWidgetPicker({ rootRef, onAttach, onPanelOpenChange }:
     onPanelOpenChange(false);
   }, [onPanelOpenChange]);
 
-  const aimPickerAt = useEffectEvent((target: Element, x: number, y: number) => {
+  const aimPickerAt = useStableEvent((target: Element, x: number, y: number) => {
     if (rootRef.current?.contains(target)) {
       currentPickerElementRef.current = null;
       setHighlight(null);
@@ -54,7 +55,7 @@ export function useFixThisWidgetPicker({ rootRef, onAttach, onPanelOpenChange }:
     });
   });
 
-  const capturePickerElement = useEffectEvent((target: Element) => {
+  const capturePickerElement = useStableEvent((target: Element) => {
     const element = currentPickerElementRef.current ?? target;
     if (rootRef.current?.contains(element)) return;
 
@@ -106,7 +107,7 @@ export function useFixThisWidgetPicker({ rootRef, onAttach, onPanelOpenChange }:
       document.removeEventListener('click', onPickClick, true);
       document.removeEventListener('keydown', onPickKeyDown, true);
     };
-  }, [picking, rootRef]);
+  }, [aimPickerAt, capturePickerElement, picking, rootRef]);
 
   return {
     picking,

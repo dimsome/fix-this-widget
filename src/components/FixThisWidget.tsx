@@ -1,14 +1,15 @@
 'use client';
 
-import { useEffect, useEffectEvent, useRef } from 'react';
+import { useEffect, useId, useRef } from 'react';
 import type { FormEvent } from 'react';
 import { FeedbackForm } from './FeedbackForm';
 import { FeedbackPickerOverlay } from './FeedbackPickerOverlay';
 import { FeedbackSuccess } from './FeedbackSuccess';
-import type { FixThisWidgetContext, FixThisWidgetProps } from './types';
-import { SITE_FOOTER_SELECTOR, useFixThisWidgetFooterStyle } from './useFixThisWidgetFooterStyle';
-import { useFixThisWidgetFormState } from './useFixThisWidgetFormState';
-import { useFixThisWidgetPicker } from './useFixThisWidgetPicker';
+import type { FixThisWidgetContext, FixThisWidgetProps } from '../shared/types';
+import { SITE_FOOTER_SELECTOR, useFixThisWidgetFooterStyle } from '../hooks/useFixThisWidgetFooterStyle';
+import { useFixThisWidgetFormState } from '../hooks/useFixThisWidgetFormState';
+import { useFixThisWidgetPicker } from '../hooks/useFixThisWidgetPicker';
+import { useStableEvent } from '../hooks/useStableEvent';
 
 function defaultFixThisWidgetContext(): FixThisWidgetContext {
   return {
@@ -18,6 +19,10 @@ function defaultFixThisWidgetContext(): FixThisWidgetContext {
   };
 }
 
+function widgetId(baseId: string, suffix: string): string {
+  return `fix-this-widget-${baseId.replace(/:/g, '')}-${suffix}`;
+}
+
 export function FixThisWidget({
   submitFeedback,
   footerSelector = SITE_FOOTER_SELECTOR,
@@ -25,7 +30,13 @@ export function FixThisWidget({
   feedbackSource = 'fix_this_widget',
   getContext = defaultFixThisWidgetContext,
 }: FixThisWidgetProps) {
+  const reactId = useId();
+  const panelId = widgetId(reactId, 'panel');
+  const titleId = widgetId(reactId, 'title');
+  const noteId = widgetId(reactId, 'note');
+  const emailId = widgetId(reactId, 'email');
   const rootRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const noteRef = useRef<HTMLTextAreaElement>(null);
   const rootStyle = useFixThisWidgetFooterStyle(footerSelector);
   const { state, noteIsEmpty, actions } = useFixThisWidgetFormState();
@@ -36,12 +47,17 @@ export function FixThisWidget({
     onPanelOpenChange: actions.setOpen,
   });
 
+  function closePanel({ restoreFocus = false }: { restoreFocus?: boolean } = {}) {
+    actions.closePanel();
+    if (restoreFocus) triggerRef.current?.focus();
+  }
+
   useEffect(() => {
     if (!state.open || isSuccess) return;
     noteRef.current?.focus();
   }, [state.open, isSuccess]);
 
-  const onDocumentKeyDown = useEffectEvent((event: KeyboardEvent) => {
+  const onDocumentKeyDown = useStableEvent((event: KeyboardEvent) => {
     if (event.key !== 'Escape') return;
 
     if (picker.picking) {
@@ -50,7 +66,7 @@ export function FixThisWidget({
       return;
     }
 
-    if (state.open) actions.closePanel();
+    if (state.open) closePanel({ restoreFocus: true });
   });
 
   useEffect(() => {
@@ -60,15 +76,15 @@ export function FixThisWidget({
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [onDocumentKeyDown]);
 
-  const onDocumentMouseDown = useEffectEvent((event: MouseEvent) => {
+  const onDocumentMouseDown = useStableEvent((event: MouseEvent) => {
     if (!state.open || picker.picking) return;
 
     const target = event.target;
     if (target instanceof Node && rootRef.current?.contains(target)) return;
 
-    actions.closePanel();
+    closePanel();
   });
 
   useEffect(() => {
@@ -78,7 +94,7 @@ export function FixThisWidget({
 
     document.addEventListener('mousedown', handleMouseDown);
     return () => document.removeEventListener('mousedown', handleMouseDown);
-  }, []);
+  }, [onDocumentMouseDown]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -109,17 +125,18 @@ export function FixThisWidget({
 
   function handleDone() {
     actions.resetForm();
-    actions.closePanel();
+    closePanel({ restoreFocus: true });
   }
 
   return (
     <div ref={rootRef} className="fix-this-widget" data-fix-this-widget style={rootStyle}>
       <button
+        ref={triggerRef}
         type="button"
         className="fix-this-widget-trigger"
         aria-haspopup="dialog"
         aria-expanded={state.open}
-        aria-controls="fix-this-widget-panel"
+        aria-controls={panelId}
         onClick={() => {
           if (picker.picking) return;
           actions.toggleOpen();
@@ -132,16 +149,18 @@ export function FixThisWidget({
       </button>
 
       {state.open ? (
-        <div id="fix-this-widget-panel" className="fix-this-widget-panel" role="dialog" aria-modal="false" aria-labelledby="fix-this-widget-title">
+        <div id={panelId} className="fix-this-widget-panel" role="dialog" aria-modal="false" aria-labelledby={titleId}>
           <div className="fix-this-widget-panel-head">
-            <h2 id="fix-this-widget-title">Send feedback</h2>
-            <button type="button" className="fix-this-widget-close" aria-label="Close feedback" onClick={actions.closePanel}>×</button>
+            <h2 id={titleId}>Send feedback</h2>
+            <button type="button" className="fix-this-widget-close" aria-label="Close feedback" onClick={() => closePanel({ restoreFocus: true })}>×</button>
           </div>
 
           {isSuccess ? (
             <FeedbackSuccess onSendAnother={actions.resetForm} onDone={handleDone} />
           ) : (
             <FeedbackForm
+              noteId={noteId}
+              emailId={emailId}
               note={state.note}
               email={state.email}
               attached={state.attached}

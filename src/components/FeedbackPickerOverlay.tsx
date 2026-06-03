@@ -1,4 +1,4 @@
-import type { PickerHighlight } from './types';
+import type { PickerHighlight } from '../shared/types';
 
 export type FeedbackPickerOverlayProps = {
   highlight: PickerHighlight | null;

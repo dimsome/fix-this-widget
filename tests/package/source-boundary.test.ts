@@ -68,7 +68,7 @@ function isForbiddenImport(specifier: string): boolean {
 
 describe('fix-this-widget package boundary', () => {
   it('does not expose legacy GlobalFeedback aliases in package API files', () => {
-    const apiFiles = ['src/index.ts', 'src/types.ts', 'src/FixThisWidget.tsx'];
+    const apiFiles = ['src/index.ts', 'src/shared/types.ts', 'src/components/FixThisWidget.tsx'];
 
     for (const file of apiFiles) {
       const source = readFileSync(join(packageRoot, file), 'utf8');

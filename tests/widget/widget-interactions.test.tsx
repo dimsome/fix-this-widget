@@ -3,15 +3,15 @@ import { join } from 'node:path';
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import * as widgetPackage from '../src';
-import { FixThisWidget } from '../src';
-import type { FixThisWidgetFeedbackResponse, SubmitFixThisWidgetFeedback } from '../src';
+import * as widgetPackage from '../../src';
+import { FixThisWidget } from '../../src';
+import type { FixThisWidgetFeedbackResponse, SubmitFixThisWidgetFeedback } from '../../src';
 
 function feedbackResponse(note = 'Saved'): FixThisWidgetFeedbackResponse {
   return { kind: 'feedback', feedbackId: 'feedback_1', created: true, rating: null, note };
 }
 
-function makeSubmitFeedback(response: FixThisWidgetFeedbackResponse = feedbackResponse()) {
+function makeSubmitFeedback(response: FixThisWidgetFeedbackResponse | void = feedbackResponse()) {
   return vi.fn<SubmitFixThisWidgetFeedback>().mockResolvedValue(response);
 }
 
@@ -94,7 +94,7 @@ describe('fix-this-widget package', () => {
   });
 
   it('submits fix-this-widget metadata through the host adapter prop and keeps success visible until Send another or Close this feedback', async () => {
-    const submitFeedback = makeSubmitFeedback(feedbackResponse('The FAQ copy is confusing.'));
+    const submitFeedback = makeSubmitFeedback();
 
     render(<FixThisWidget submitFeedback={submitFeedback} />);
     fireEvent.click(screen.getByRole('button', { name: /^Feedback$/i }));
@@ -168,6 +168,30 @@ describe('fix-this-widget package', () => {
     });
   });
 
+  it('renders multiple widget instances with distinct generated ids and label wiring', () => {
+    render(
+      <>
+        <FixThisWidget submitFeedback={makeSubmitFeedback()} feedbackSource="team" />
+        <FixThisWidget submitFeedback={makeSubmitFeedback()} feedbackSource="users" />
+      </>,
+    );
+
+    const triggers = screen.getAllByRole('button', { name: /^Feedback$/i });
+    fireEvent.click(triggers[0]);
+    fireEvent.click(triggers[1]);
+
+    const dialogs = screen.getAllByRole('dialog', { name: /^Send feedback$/i });
+    const noteIds = dialogs.map((dialog) => within(dialog).getByLabelText(/^Your feedback$/i).id);
+    const emailIds = dialogs.map((dialog) => within(dialog).getByLabelText(/^Email/i).id);
+    const panelIds = dialogs.map((dialog) => dialog.id);
+
+    expect(new Set(noteIds).size).toBe(2);
+    expect(new Set(emailIds).size).toBe(2);
+    expect(new Set(panelIds).size).toBe(2);
+    expect(triggers[0]).toHaveAttribute('aria-controls', panelIds[0]);
+    expect(triggers[1]).toHaveAttribute('aria-controls', panelIds[1]);
+  });
+
   it('keeps failed submissions editable and closes with explicit controls', async () => {
     const submitFeedback = vi.fn<SubmitFixThisWidgetFeedback>().mockRejectedValue(new Error('network down'));
 
@@ -197,7 +221,7 @@ describe('fix-this-widget package', () => {
 
     render(
       <>
-        <button type="button" data-od-id="hero-submit-button">Analyze transaction</button>
+        <button type="button" data-feedback-id="hero-submit-button">Analyze transaction</button>
         <FixThisWidget submitFeedback={submitFeedback} />
       </>,
     );
@@ -214,20 +238,25 @@ describe('fix-this-widget package', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /^Analyze transaction$/i }));
     expect(screen.getByText('Hero submit button · Button')).toBeInTheDocument();
-    expect(screen.getByText('[data-od-id="hero-submit-button"]')).toBeInTheDocument();
+    expect(screen.getByText('[data-feedback-id="hero-submit-button"]')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: /^Send feedback$/i }));
     await waitFor(() => expect(submitFeedback).toHaveBeenCalledTimes(1));
 
     const [payload] = submittedBodies(submitFeedback);
     expect(payload.element).toEqual({
-      odId: 'hero-submit-button',
       label: 'Hero submit button',
       type: 'Button',
-      selector: '[data-od-id="hero-submit-button"]',
+      selector: '[data-feedback-id="hero-submit-button"]',
+      selectorCandidates: ['[data-feedback-id="hero-submit-button"]', 'button'],
       text: 'Analyze transaction',
+      context: {
+        path: 'button',
+        target: '<button type="button" data-feedback-id="hero-submit-button">Analyze transaction</button>',
+        parent: null,
+      },
     });
-    expect(JSON.stringify(payload.element)).not.toMatch(/outerHTML|innerHTML|<button|data-fix-this-widget/i);
+    expect(JSON.stringify(payload.element)).not.toMatch(/outerHTML|innerHTML|<span|data-fix-this-widget/i);
 
     fireEvent.click(screen.getByRole('button', { name: /^Send another$/i }));
     fireEvent.click(screen.getByRole('button', { name: /^＋ Point at an element$/i }));
@@ -243,12 +272,13 @@ describe('fix-this-widget package', () => {
     const css = readFileSync(join(process.cwd(), 'src', 'styles.css'), 'utf8');
 
     expect(css).toMatch(/\.fix-this-widget\s*\{[\s\S]*--fix-this-widget-footer-offset:\s*0px;/);
-    expect(css).toMatch(/\.fix-this-widget-trigger\s*\{[\s\S]*position:\s*fixed;[\s\S]*bottom:\s*calc\(24px\s*\+\s*var\(--fix-this-widget-footer-offset,\s*0px\)\);[\s\S]*right:\s*24px;[\s\S]*min-height:\s*var\(--tap-min,\s*44px\);/);
+    expect(css).toMatch(/\.fix-this-widget-trigger\s*\{[\s\S]*position:\s*fixed;[\s\S]*bottom:\s*calc\(24px\s*\+\s*var\(--fix-this-widget-footer-offset,\s*0px\)\);[\s\S]*right:\s*24px;[\s\S]*min-height:\s*var\(--fix-this-widget-tap-min,\s*44px\);/);
     expect(css).toMatch(/\.fix-this-widget-panel\s*\{[\s\S]*bottom:\s*calc\(80px\s*\+\s*var\(--fix-this-widget-footer-offset,\s*0px\)\);[\s\S]*width:\s*360px;[\s\S]*max-height:\s*calc\(100vh\s*-\s*96px\s*-\s*var\(--fix-this-widget-footer-offset,\s*0px\)\);[\s\S]*overflow-y:\s*auto;/);
-    expect(css).toMatch(/@media\s*\(max-width:\s*640px\)\s*\{[\s\S]*\.fix-this-widget-panel\s*\{[\s\S]*left:\s*0;[\s\S]*right:\s*0;[\s\S]*bottom:\s*0;[\s\S]*width:\s*100%;[\s\S]*max-width:\s*100%;[\s\S]*border-radius:\s*var\(--r-xl,\s*24px\)\s+var\(--r-xl,\s*24px\)\s+0\s+0;/);
+    expect(css).toMatch(/@media\s*\(max-width:\s*640px\)\s*\{[\s\S]*\.fix-this-widget-panel\s*\{[\s\S]*left:\s*0;[\s\S]*right:\s*0;[\s\S]*bottom:\s*0;[\s\S]*width:\s*100%;[\s\S]*max-width:\s*100%;[\s\S]*border-radius:\s*var\(--fix-this-widget-radius-xl,\s*24px\)\s+var\(--fix-this-widget-radius-xl,\s*24px\)\s+0\s+0;/);
     expect(css).toMatch(/\.fix-this-widget-overlay\s*\{[\s\S]*position:\s*fixed;[\s\S]*z-index:\s*1002;/);
-    expect(css).toMatch(/\.fix-this-widget-highlight\s*\{[\s\S]*z-index:\s*1003;[\s\S]*border:\s*2px\s+solid\s+var\(--primary,\s*#1D7A8C\);/);
-    expect(css).toContain('var(--surface, #fff)');
-    expect(css).toContain('var(--shadow-3, 0 20px 50px rgba(16, 20, 24, .18))');
+    expect(css).toMatch(/\.fix-this-widget-highlight\s*\{[\s\S]*z-index:\s*1003;[\s\S]*border:\s*2px\s+solid\s+var\(--fix-this-widget-primary,\s*#1D7A8C\);/);
+    expect(css).toContain('var(--fix-this-widget-surface, #fff)');
+    expect(css).toContain('var(--fix-this-widget-shadow-3, 0 20px 50px rgba(16, 20, 24, .18))');
+    expect(css).not.toContain('var(--surface, #fff)');
   });
 });
