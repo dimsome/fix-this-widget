@@ -53,7 +53,7 @@ export type FixThisWidgetContext = Pick<FixThisWidgetFeedbackPayload, 'page' | '
 export type SubmitFixThisWidgetFeedback = (body: FixThisWidgetFeedbackPayload) => Promise<void | FixThisWidgetFeedbackResponse | unknown>;
 
 export type FixThisWidgetProps = {
-  submitFeedback: SubmitFixThisWidgetFeedback;
+  submitFeedback?: SubmitFixThisWidgetFeedback;
   footerSelector?: string;
   enableElementPicker?: boolean;
   feedbackSource?: FixThisWidgetFeedbackSource;

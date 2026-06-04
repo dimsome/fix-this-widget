@@ -45,15 +45,15 @@ describe('fix-this-widget package', () => {
     setViewport(1280, 720);
   });
 
-  it('exports FixThisWidget without legacy GlobalFeedback aliases', () => {
+  it('exports FixThisWidget without old GlobalFeedback aliases', () => {
     expect(widgetPackage.FixThisWidget).toBe(FixThisWidget);
     expect(widgetPackage).not.toHaveProperty('GlobalFeedbackWidget');
   });
 
-  it('raises the floating feedback control above the default footer selector when the footer enters the viewport', () => {
+  it('raises the floating feedback control above a semantic footer without host attributes', () => {
     render(
       <>
-        <footer data-testid="site-footer" data-od-id="site-footer" />
+        <footer data-testid="site-footer" />
         <FixThisWidget submitFeedback={makeSubmitFeedback()} />
       </>,
     );
@@ -66,6 +66,28 @@ describe('fix-this-widget package', () => {
     expect(document.querySelector('[data-fix-this-widget]')).toHaveStyle({
       '--fix-this-widget-footer-offset': '60px',
     });
+  });
+
+  it('posts to the default feedback endpoint when no submit adapter is configured', async () => {
+    const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(new Response(null, { status: 204 }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    render(<FixThisWidget />);
+    fireEvent.click(screen.getByRole('button', { name: /^Feedback$/i }));
+    fireEvent.change(screen.getByLabelText(/^Your feedback$/i), { target: { value: 'Zero config should work.' } });
+    fireEvent.click(screen.getByRole('button', { name: /^Send feedback$/i }));
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+    expect(fetchMock).toHaveBeenCalledWith('/api/fix-this-widget/feedback', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: expect.any(String),
+    });
+    expect(JSON.parse(fetchMock.mock.calls[0]?.[1]?.body as string)).toMatchObject({
+      source: 'fix_this_widget',
+      note: 'Zero config should work.',
+    });
+    expect(screen.getByRole('status')).toHaveTextContent('Thanks. We read every note.');
   });
 
   it('opens the form, validates an empty note inline, and keeps Send feedback clickable', () => {

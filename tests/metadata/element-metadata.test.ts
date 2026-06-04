@@ -3,11 +3,10 @@ import { describe, expect, it } from 'vitest';
 import { describeFeedbackElement } from '../../src/metadata/elementMetadata';
 
 describe('fix-this-widget element metadata', () => {
-  it('prefers public stable selector attributes and bounded sanitized context over internal data-od ids', () => {
+  it('prefers public stable selector attributes and bounded sanitized context', () => {
     const button = document.createElement('button');
     button.setAttribute('data-feedback-id', 'hero-primary-cta');
-    button.setAttribute('data-testid', 'legacy-testid');
-    button.setAttribute('data-od-id', 'hero-submit-button');
+    button.setAttribute('data-testid', 'hero-testid');
     button.setAttribute('data-wallet-state', 'connected');
     button.innerHTML = '<span>Analyze transaction</span>';
 
@@ -19,14 +18,13 @@ describe('fix-this-widget element metadata', () => {
       selector: '[data-feedback-id="hero-primary-cta"]',
       selectorCandidates: [
         '[data-feedback-id="hero-primary-cta"]',
-        '[data-testid="legacy-testid"]',
-        '[data-od-id="hero-submit-button"]',
+        '[data-testid="hero-testid"]',
         'button',
       ],
       text: 'Analyze transaction',
       context: {
         path: 'button',
-        target: '<button data-feedback-id="hero-primary-cta" data-testid="legacy-testid">Analyze transaction</button>',
+        target: '<button data-feedback-id="hero-primary-cta" data-testid="hero-testid">Analyze transaction</button>',
         parent: null,
       },
     });
@@ -36,7 +34,7 @@ describe('fix-this-widget element metadata', () => {
 
   it('uses nearby landmarks and bounded text for generic picked elements', () => {
     const section = document.createElement('section');
-    section.setAttribute('data-od-id', 'faq-panel');
+    section.setAttribute('data-feedback-id', 'faq-panel');
     const copy = document.createElement('span');
     copy.textContent = 'This is a long body copy node that should stay readable but never dump unlimited page text into feedback metadata.';
     section.append(copy);
@@ -49,7 +47,7 @@ describe('fix-this-widget element metadata', () => {
       selectorCandidates: ['section > span'],
       context: {
         path: 'section > span',
-        parent: '<section>This is a long body copy node that should stay readable but never dump unlimited page text into feedback metadata.</section>',
+        parent: '<section data-feedback-id="faq-panel">This is a long body copy node that should stay readable but never dump unlimited page text into feedback metadata.</section>',
       },
     });
     const text = describeFeedbackElement(copy).text;

@@ -1,7 +1,7 @@
 import { useCallback, useSyncExternalStore } from 'react';
 import type { CSSProperties } from 'react';
 
-export const SITE_FOOTER_SELECTOR = '[data-od-id="site-footer"]';
+export const SITE_FOOTER_SELECTOR = 'footer, [role="contentinfo"]';
 
 type StoreSubscriber = () => void;
 

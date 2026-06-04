@@ -1,7 +1,7 @@
 import type { FeedbackElementMetadata, FeedbackElementType } from '../shared/types';
 
 const elementTypes = new Set<FeedbackElementType>(['Heading', 'Button', 'Link', 'Input', 'Card/Section', 'Image', 'Text']);
-const stableSelectorAttributes = ['data-feedback-id', 'data-testid', 'data-test', 'data-cy', 'id', 'aria-label', 'name', 'data-od-id'];
+const stableSelectorAttributes = ['data-feedback-id', 'data-testid', 'data-test', 'data-cy', 'id', 'aria-label', 'name'];
 const safeContextAttributes = new Set(['data-feedback-id', 'data-testid', 'data-test', 'data-cy', 'id', 'aria-label', 'role', 'name', 'type', 'href', 'alt', 'title']);
 const maxContextLength = 300;
 
@@ -49,10 +49,10 @@ function elementTypeFor(element: Element): FeedbackElementType {
 }
 
 function landmarkLabel(element: Element): string | null {
-  const landmark = element.closest('section, article, aside, nav, header, footer, main, [data-feedback-id], [data-testid], [data-test], [data-cy], [data-od-id]');
+  const landmark = element.closest('section, article, aside, nav, header, footer, main, [data-feedback-id], [data-testid], [data-test], [data-cy]');
   if (!landmark || landmark === element) return null;
 
-  for (const attribute of ['data-feedback-id', 'data-testid', 'data-test', 'data-cy', 'data-od-id', 'aria-label']) {
+  for (const attribute of ['data-feedback-id', 'data-testid', 'data-test', 'data-cy', 'aria-label']) {
     const value = landmark.getAttribute(attribute);
     if (value) return prettify(value);
   }
@@ -61,7 +61,7 @@ function landmarkLabel(element: Element): string | null {
 }
 
 function labelFor(element: Element): string {
-  for (const attribute of ['data-feedback-id', 'data-testid', 'data-test', 'data-cy', 'data-od-id']) {
+  for (const attribute of ['data-feedback-id', 'data-testid', 'data-test', 'data-cy']) {
     const value = element.getAttribute(attribute);
     if (value) return prettify(value);
   }

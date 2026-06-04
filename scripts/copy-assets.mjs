@@ -3,6 +3,7 @@ import { dirname, join } from 'node:path';
 
 const assets = [
   ['src/styles.css', 'dist/styles.css'],
+  ['src/styles.css.d.ts', 'dist/styles.css.d.ts'],
 ];
 
 await Promise.all(assets.map(async ([from, to]) => {

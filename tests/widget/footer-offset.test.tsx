@@ -22,18 +22,18 @@ function makeRect(top: number, height: number): DOMRect {
   } as DOMRect;
 }
 
-function FooterOffsetHarness({ selector }: { selector: string }) {
+function FooterOffsetHarness({ selector }: { selector?: string }) {
   const style = useFixThisWidgetFooterStyle(selector) as CSSProperties | undefined;
   return <div data-testid="feedback-root" style={style} />;
 }
 
 describe('fix-this-widget footer avoidance', () => {
-  it('sets a CSS footer offset only while the site footer overlaps the viewport', () => {
+  it('sets a CSS footer offset for a semantic footer only while it overlaps the viewport', () => {
     setViewport(720);
     render(
       <>
-        <footer data-testid="site-footer" data-od-id="site-footer" />
-        <FooterOffsetHarness selector={'[data-od-id="site-footer"]'} />
+        <footer data-testid="site-footer" />
+        <FooterOffsetHarness />
       </>,
     );
 

@@ -5,7 +5,7 @@ import type { FormEvent } from 'react';
 import { FeedbackForm } from './FeedbackForm';
 import { FeedbackPickerOverlay } from './FeedbackPickerOverlay';
 import { FeedbackSuccess } from './FeedbackSuccess';
-import type { FixThisWidgetContext, FixThisWidgetProps } from '../shared/types';
+import type { FixThisWidgetContext, FixThisWidgetFeedbackPayload, FixThisWidgetProps } from '../shared/types';
 import { SITE_FOOTER_SELECTOR, useFixThisWidgetFooterStyle } from '../hooks/useFixThisWidgetFooterStyle';
 import { useFixThisWidgetFormState } from '../hooks/useFixThisWidgetFormState';
 import { useFixThisWidgetPicker } from '../hooks/useFixThisWidgetPicker';
@@ -23,8 +23,18 @@ function widgetId(baseId: string, suffix: string): string {
   return `fix-this-widget-${baseId.replace(/:/g, '')}-${suffix}`;
 }
 
+async function submitFeedbackToDefaultEndpoint(body: FixThisWidgetFeedbackPayload) {
+  const response = await fetch('/api/fix-this-widget/feedback', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) throw new Error('Feedback submission failed');
+}
+
 export function FixThisWidget({
-  submitFeedback,
+  submitFeedback = submitFeedbackToDefaultEndpoint,
   footerSelector = SITE_FOOTER_SELECTOR,
   enableElementPicker = true,
   feedbackSource = 'fix_this_widget',

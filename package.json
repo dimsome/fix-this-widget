@@ -1,5 +1,5 @@
 {
-  "name": "@dimsome/fix-this-widget",
+  "name": "fix-this-widget",
   "version": "0.1.0",
   "description": "Standalone React feedback widget for collecting fix requests from a host app.",
   "type": "module",
@@ -19,9 +19,6 @@
     "fix-request",
     "element-picker"
   ],
-  "publishConfig": {
-    "access": "public"
-  },
   "sideEffects": [
     "./dist/styles.css"
   ],
@@ -38,10 +35,17 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
-    "./styles.css": "./dist/styles.css",
+    "./styles.css": {
+      "types": "./dist/styles.css.d.ts",
+      "default": "./dist/styles.css"
+    },
     "./element-metadata": {
       "types": "./dist/metadata/elementMetadata.d.ts",
       "import": "./dist/metadata/elementMetadata.js"
+    },
+    "./server": {
+      "types": "./dist/server.d.ts",
+      "import": "./dist/server.js"
     }
   },
   "peerDependencies": {
@@ -66,7 +70,7 @@
     "vitest": "4.1.6"
   },
   "scripts": {
-    "build": "tsup src/index.ts src/metadata/elementMetadata.ts --format esm --dts --out-dir dist --clean --external react --external react-dom && node scripts/mark-client-entry.mjs && node scripts/copy-assets.mjs",
+    "build": "tsup src/index.ts src/metadata/elementMetadata.ts src/server.ts --format esm --dts --out-dir dist --clean --external react --external react-dom && node scripts/mark-client-entry.mjs && node scripts/copy-assets.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint .",
     "test": "vitest run",

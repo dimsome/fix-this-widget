@@ -27,14 +27,14 @@ function readPackageJson(): PackageJson {
 }
 
 describe('package metadata', () => {
-  it('declares scoped public package metadata without a publish script', () => {
+  it('declares unscoped public package metadata without a publish script', () => {
     const pkg = readPackageJson();
 
-    expect(pkg.name).toBe('@dimsome/fix-this-widget');
+    expect(pkg.name).toBe('fix-this-widget');
     expect(pkg.private).not.toBe(true);
     expect(pkg.description).toMatch(/Standalone React feedback widget/);
     expect(pkg.license).toBe('MIT');
-    expect(pkg.publishConfig).toEqual({ access: 'public' });
+    expect(pkg.publishConfig).toBeUndefined();
     expect(pkg.repository).toEqual({
       type: 'git',
       url: 'git+https://github.com/dimsome/fix-this-widget.git',
@@ -45,7 +45,7 @@ describe('package metadata', () => {
     expect(pkg.scripts?.publish).toBeUndefined();
   });
 
-  it('exports built ESM, declarations, CSS, and element metadata instead of raw TS', () => {
+  it('exports built ESM, declarations, CSS, element metadata, and server JSONL helpers instead of raw TS', () => {
     const pkg = readPackageJson();
 
     expect(pkg.main).toBe('./dist/index.js');
@@ -55,10 +55,17 @@ describe('package metadata', () => {
       types: './dist/index.d.ts',
       import: './dist/index.js',
     });
-    expect(pkg.exports?.['./styles.css']).toBe('./dist/styles.css');
+    expect(pkg.exports?.['./styles.css']).toEqual({
+      types: './dist/styles.css.d.ts',
+      default: './dist/styles.css',
+    });
     expect(pkg.exports?.['./element-metadata']).toEqual({
       types: './dist/metadata/elementMetadata.d.ts',
       import: './dist/metadata/elementMetadata.js',
+    });
+    expect(pkg.exports?.['./server']).toEqual({
+      types: './dist/server.d.ts',
+      import: './dist/server.js',
     });
     expect(pkg.scripts?.build).toContain('tsup');
     expect(pkg.scripts?.build).not.toContain('tsc --noEmit');

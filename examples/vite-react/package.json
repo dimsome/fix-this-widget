@@ -4,11 +4,12 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
     "build": "vite build",
     "preview": "vite preview"
   },
   "dependencies": {
-    "@dimsome/fix-this-widget": "file:../..",
+    "fix-this-widget": "file:../..",
     "@vitejs/plugin-react": "latest",
     "vite": "latest",
     "typescript": "latest",
