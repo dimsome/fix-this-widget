@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react';
+
 export type FeedbackElementType = 'Heading' | 'Button' | 'Link' | 'Input' | 'Card/Section' | 'Image' | 'Text';
 
 export interface FeedbackElementContext {
@@ -56,8 +58,10 @@ export type FixThisWidgetProps = {
   submitFeedback?: SubmitFixThisWidgetFeedback;
   footerSelector?: string;
   enableElementPicker?: boolean;
+  collectEmail?: boolean;
   feedbackSource?: FixThisWidgetFeedbackSource;
   getContext?: () => FixThisWidgetContext;
+  footerContext?: ReactNode;
 };
 
 export type FeedbackSubmitState = 'idle' | 'submitting' | 'success' | 'error';

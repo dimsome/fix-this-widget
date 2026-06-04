@@ -71,6 +71,9 @@
   },
   "scripts": {
     "build": "tsup src/index.ts src/metadata/elementMetadata.ts src/server.ts --format esm --dts --out-dir dist --clean --external react --external react-dom && node scripts/mark-client-entry.mjs && node scripts/copy-assets.mjs",
+    "example": "npm run example-simple",
+    "example-simple": "npm run build && rm -rf examples/example-simple/node_modules/fix-this-widget && npm --prefix examples/example-simple install && npm --prefix examples/example-simple run dev -- --host 127.0.0.1",
+    "example-full": "npm run build && rm -rf examples/example-full/node_modules/fix-this-widget && npm --prefix examples/example-full install && npm --prefix examples/example-full run dev -- --host 127.0.0.1",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint .",
     "test": "vitest run",

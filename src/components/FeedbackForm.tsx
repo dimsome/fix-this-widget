@@ -1,6 +1,5 @@
-import type { FormEventHandler, Ref } from 'react';
+import type { FormEventHandler, ReactNode, Ref } from 'react';
 import type { FeedbackElementMetadata, FeedbackSubmitState } from '../shared/types';
-import { FeedbackCaveat } from './FeedbackCaveat';
 
 export type FeedbackFormProps = {
   noteId: string;
@@ -15,6 +14,8 @@ export type FeedbackFormProps = {
   onEmailChange: (value: string) => void;
   onSubmit: FormEventHandler<HTMLFormElement>;
   enableElementPicker?: boolean;
+  collectEmail?: boolean;
+  footerContext?: ReactNode;
   onStartPicking: () => void;
   onRemoveAttached: () => void;
 };
@@ -32,6 +33,8 @@ export function FeedbackForm({
   onEmailChange,
   onSubmit,
   enableElementPicker = true,
+  collectEmail = true,
+  footerContext,
   onStartPicking,
   onRemoveAttached,
 }: FeedbackFormProps) {
@@ -52,19 +55,21 @@ export function FeedbackForm({
         />
       </div>
 
-      <div className="fix-this-widget-field">
-        <label className="fix-this-widget-label" htmlFor={emailId}>Email <span>(optional, if you'd like a reply)</span></label>
-        <input
-          id={emailId}
-          className="fix-this-widget-email"
-          name="email"
-          type="email"
-          placeholder="you@example.com"
-          autoComplete="email"
-          value={email}
-          onChange={(event) => onEmailChange(event.currentTarget.value)}
-        />
-      </div>
+      {collectEmail ? (
+        <div className="fix-this-widget-field">
+          <label className="fix-this-widget-label" htmlFor={emailId}>Email <span>(optional, if you'd like a reply)</span></label>
+          <input
+            id={emailId}
+            className="fix-this-widget-email"
+            name="email"
+            type="email"
+            placeholder="you@example.com"
+            autoComplete="email"
+            value={email}
+            onChange={(event) => onEmailChange(event.currentTarget.value)}
+          />
+        </div>
+      ) : null}
 
       {enableElementPicker ? (
         <div className="fix-this-widget-field">
@@ -96,7 +101,11 @@ export function FeedbackForm({
         </button>
       </div>
 
-      <FeedbackCaveat testId="fix-this-widget-form-caveat" />
+      {footerContext ? (
+        <div className="fix-this-widget-footer-context" data-testid="fix-this-widget-footer-context">
+          {footerContext}
+        </div>
+      ) : null}
     </form>
   );
 }

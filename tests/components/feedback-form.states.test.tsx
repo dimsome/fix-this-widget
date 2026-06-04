@@ -11,6 +11,8 @@ type FormOverrides = Partial<{
   attached: FeedbackElementMetadata | null;
   message: string;
   submitState: 'idle' | 'submitting' | 'success' | 'error';
+  footerContext: string;
+  collectEmail: boolean;
 }>;
 
 function renderFeedbackForm(overrides: FormOverrides = {}) {
@@ -28,10 +30,12 @@ function renderFeedbackForm(overrides: FormOverrides = {}) {
     onSubmit: vi.fn((event: React.FormEvent<HTMLFormElement>) => event.preventDefault()),
     onStartPicking: vi.fn(),
     onRemoveAttached: vi.fn(),
+    footerContext: overrides.footerContext,
+    collectEmail: overrides.collectEmail,
   };
 
-  render(<FeedbackForm {...props} />);
-  return props;
+  const result = render(<FeedbackForm {...props} />);
+  return { ...props, ...result };
 }
 
 describe('fix-this-widget form states', () => {
@@ -42,13 +46,34 @@ describe('fix-this-widget form states', () => {
     expect(sendButton).toHaveAttribute('aria-disabled', 'true');
     expect(sendButton).not.toBeDisabled();
     expect(screen.getByText('Write a short note first, then we can send it.')).toBeInTheDocument();
-    expect(screen.getByTestId('fix-this-widget-form-caveat')).toHaveTextContent('Not account support, recovery, or trading advice.');
+    expect(screen.queryByTestId('fix-this-widget-form-caveat')).not.toBeInTheDocument();
+    expect(screen.queryByText(/We read every note/i)).not.toBeInTheDocument();
 
     fireEvent.change(screen.getByLabelText(/^Your feedback$/i), { target: { value: 'Helpful note' } });
     fireEvent.change(screen.getByLabelText(/^Email/i), { target: { value: 'dimitri@example.com' } });
 
     expect(props.onNoteChange).toHaveBeenCalledWith('Helpful note');
     expect(props.onEmailChange).toHaveBeenCalledWith('dimitri@example.com');
+  });
+
+  it('hides optional email collection when disabled', () => {
+    const props = renderFeedbackForm({ collectEmail: false });
+
+    expect(screen.queryByLabelText(/^Email/i)).not.toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText(/^Your feedback$/i), { target: { value: 'No reply needed.' } });
+
+    expect(props.onNoteChange).toHaveBeenCalledWith('No reply needed.');
+    expect(props.onEmailChange).not.toHaveBeenCalled();
+  });
+
+  it('renders optional footer context below the submit button as its own divided section', () => {
+    renderFeedbackForm({ footerContext: 'Helpful notes can turn into shipped fixes.' });
+
+    const context = screen.getByTestId('fix-this-widget-footer-context');
+    expect(context).toHaveTextContent('Helpful notes can turn into shipped fixes.');
+    expect(context).not.toHaveTextContent(/We read every note/i);
+    expect(screen.queryByTestId('fix-this-widget-form-caveat')).not.toBeInTheDocument();
   });
 
   it('renders attached-element and submitting states without changing form ownership', () => {

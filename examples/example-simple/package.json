@@ -1,0 +1,20 @@
+{
+  "name": "fix-this-widget-example-simple",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --force",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "fix-this-widget": "file:../..",
+    "@vitejs/plugin-react": "latest",
+    "vite": "latest",
+    "typescript": "latest",
+    "react": "latest",
+    "react-dom": "latest"
+  },
+  "devDependencies": {}
+}

@@ -1,9 +1,9 @@
 {
-  "name": "fix-this-widget-vite-example",
+  "name": "fix-this-widget-example-full",
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --force",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "build": "vite build",
     "preview": "vite preview"

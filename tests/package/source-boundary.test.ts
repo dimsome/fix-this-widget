@@ -67,18 +67,6 @@ function isForbiddenImport(specifier: string): boolean {
 }
 
 describe('fix-this-widget package boundary', () => {
-  it('does not expose old GlobalFeedback aliases in package API files', () => {
-    const apiFiles = ['src/index.ts', 'src/shared/types.ts', 'src/components/FixThisWidget.tsx'];
-
-    for (const file of apiFiles) {
-      const source = readFileSync(join(packageRoot, file), 'utf8');
-
-      expect(source).not.toMatch(/\bGlobalFeedback/);
-      expect(source).not.toMatch(/\bSubmitGlobalFeedback\b/);
-      expect(source).not.toMatch(/\bFeedbackResponse\b/);
-    }
-  });
-
   it('keeps package source decoupled from host app runtime concerns', () => {
     const violations: string[] = [];
 

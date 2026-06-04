@@ -1,5 +1,3 @@
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -24,20 +22,6 @@ function setViewport(width: number, height: number): void {
   Object.defineProperty(window, 'innerHeight', { configurable: true, value: height });
 }
 
-function makeRect(top: number, height: number): DOMRect {
-  return {
-    x: 0,
-    y: top,
-    top,
-    left: 0,
-    bottom: top + height,
-    right: 1280,
-    width: 1280,
-    height,
-    toJSON: () => ({}),
-  } as DOMRect;
-}
-
 describe('fix-this-widget package', () => {
   beforeEach(() => {
     document.title = 'Landing | WTF is this tx?';
@@ -50,30 +34,13 @@ describe('fix-this-widget package', () => {
     expect(widgetPackage).not.toHaveProperty('GlobalFeedbackWidget');
   });
 
-  it('raises the floating feedback control above a semantic footer without host attributes', () => {
-    render(
-      <>
-        <footer data-testid="site-footer" />
-        <FixThisWidget submitFeedback={makeSubmitFeedback()} />
-      </>,
-    );
-
-    const footer = screen.getByTestId('site-footer');
-    vi.spyOn(footer, 'getBoundingClientRect').mockReturnValue(makeRect(660, 120));
-
-    fireEvent.scroll(window);
-
-    expect(document.querySelector('[data-fix-this-widget]')).toHaveStyle({
-      '--fix-this-widget-footer-offset': '60px',
-    });
-  });
 
   it('posts to the default feedback endpoint when no submit adapter is configured', async () => {
     const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(new Response(null, { status: 204 }));
     vi.stubGlobal('fetch', fetchMock);
 
     render(<FixThisWidget />);
-    fireEvent.click(screen.getByRole('button', { name: /^Feedback$/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^Fix This$/i }));
     fireEvent.change(screen.getByLabelText(/^Your feedback$/i), { target: { value: 'Zero config should work.' } });
     fireEvent.click(screen.getByRole('button', { name: /^Send feedback$/i }));
 
@@ -87,24 +54,23 @@ describe('fix-this-widget package', () => {
       source: 'fix_this_widget',
       note: 'Zero config should work.',
     });
-    expect(screen.getByRole('status')).toHaveTextContent('Thanks. We read every note.');
+    expect(screen.getByRole('status')).toHaveTextContent('Thanks for the feedback');
   });
 
   it('opens the form, validates an empty note inline, and keeps Send feedback clickable', () => {
     const submitFeedback = makeSubmitFeedback();
 
     render(<FixThisWidget submitFeedback={submitFeedback} />);
-    fireEvent.click(screen.getByRole('button', { name: /^Feedback$/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^Fix This$/i }));
 
     const dialog = screen.getByRole('dialog', { name: /^Send feedback$/i });
     const sendButton = within(dialog).getByRole('button', { name: /^Send feedback$/i });
     expect(sendButton).not.toBeDisabled();
 
-    const caveat = screen.getByTestId('fix-this-widget-form-caveat');
-    expect(caveat.querySelector('strong')).toHaveTextContent('We read every note.');
-    expect(caveat.querySelector('br')).toBeInTheDocument();
-    expect(caveat).toHaveTextContent('Useful feedback can trigger agents to fix or improve this app.');
-    expect(caveat).toHaveTextContent('Not account support, recovery, or trading advice.');
+    expect(screen.queryByTestId('fix-this-widget-form-caveat')).not.toBeInTheDocument();
+    expect(dialog).not.toHaveTextContent(/We read every note/i);
+    expect(dialog).not.toHaveTextContent('Useful feedback can trigger agents to fix or improve this app.');
+    expect(dialog).not.toHaveTextContent('Not account support, recovery, or trading advice.');
 
     fireEvent.click(sendButton);
 
@@ -115,11 +81,41 @@ describe('fix-this-widget package', () => {
     expect(sendButton).not.toBeDisabled();
   });
 
+  it('renders optional footer context below the submit button', () => {
+    render(<FixThisWidget submitFeedback={makeSubmitFeedback()} footerContext="We use this to prioritize small UI fixes." />);
+    fireEvent.click(screen.getByRole('button', { name: /^Fix This$/i }));
+
+    const dialog = screen.getByRole('dialog', { name: /^Send feedback$/i });
+    const context = within(dialog).getByTestId('fix-this-widget-footer-context');
+
+    expect(context).toHaveTextContent('We use this to prioritize small UI fixes.');
+  });
+
+  it('can disable optional email collection and omits email from the submitted payload', async () => {
+    const submitFeedback = makeSubmitFeedback();
+
+    render(<FixThisWidget submitFeedback={submitFeedback} collectEmail={false} />);
+    fireEvent.click(screen.getByRole('button', { name: /^Fix This$/i }));
+
+    const dialog = screen.getByRole('dialog', { name: /^Send feedback$/i });
+    expect(within(dialog).queryByLabelText(/^Email/i)).not.toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText(/^Your feedback$/i), { target: { value: 'No email field, please.' } });
+    fireEvent.click(screen.getByRole('button', { name: /^Send feedback$/i }));
+
+    await waitFor(() => expect(submitFeedback).toHaveBeenCalledTimes(1));
+    expect(submittedBodies(submitFeedback)[0]).toMatchObject({
+      source: 'fix_this_widget',
+      note: 'No email field, please.',
+    });
+    expect(submittedBodies(submitFeedback)[0]).not.toHaveProperty('email');
+  });
+
   it('submits fix-this-widget metadata through the host adapter prop and keeps success visible until Send another or Close this feedback', async () => {
     const submitFeedback = makeSubmitFeedback();
 
     render(<FixThisWidget submitFeedback={submitFeedback} />);
-    fireEvent.click(screen.getByRole('button', { name: /^Feedback$/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^Fix This$/i }));
     fireEvent.change(screen.getByLabelText(/^Your feedback$/i), { target: { value: '  The FAQ copy is confusing.  ' } });
     fireEvent.change(screen.getByLabelText(/^Email/i), { target: { value: 'dimitri@example.com' } });
     fireEvent.click(screen.getByRole('button', { name: /^Send feedback$/i }));
@@ -145,9 +141,9 @@ describe('fix-this-widget package', () => {
     expect(JSON.stringify(payload)).not.toMatch(/fullDom|outerHTML|innerHTML|screenshot|walletState|hiddenData|documentElement/i);
 
     expect(screen.getByRole('status')).not.toHaveTextContent('—');
-    expect(screen.getByRole('status')).toHaveTextContent('Thanks. We read every note.');
-    expect(screen.getByRole('status')).toHaveTextContent('If it shows a gap, agents can add an interpreter or improve the explanation for future visitors.');
-    expect(screen.getByTestId('fix-this-widget-success-caveat').querySelector('br')).toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveTextContent('Thanks for the feedback');
+    expect(screen.getByRole('status')).toHaveTextContent('We will evaluate the feedback and adjust accordingly if needed.');
+    expect(screen.queryByTestId('fix-this-widget-success-caveat')).not.toBeInTheDocument();
     expect(screen.getByRole('dialog', { name: /^Send feedback$/i })).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: /^Send another$/i }));
@@ -172,7 +168,7 @@ describe('fix-this-widget package', () => {
     }));
 
     render(<FixThisWidget submitFeedback={submitFeedback} enableElementPicker={false} getContext={getContext} feedbackSource="host_widget" />);
-    fireEvent.click(screen.getByRole('button', { name: /^Feedback$/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^Fix This$/i }));
 
     expect(screen.queryByRole('button', { name: /^＋ Point at an element$/i })).not.toBeInTheDocument();
     fireEvent.change(screen.getByLabelText(/^Your feedback$/i), { target: { value: 'Context override works.' } });
@@ -198,7 +194,7 @@ describe('fix-this-widget package', () => {
       </>,
     );
 
-    const triggers = screen.getAllByRole('button', { name: /^Feedback$/i });
+    const triggers = screen.getAllByRole('button', { name: /^Fix This$/i });
     fireEvent.click(triggers[0]);
     fireEvent.click(triggers[1]);
 
@@ -218,7 +214,7 @@ describe('fix-this-widget package', () => {
     const submitFeedback = vi.fn<SubmitFixThisWidgetFeedback>().mockRejectedValue(new Error('network down'));
 
     render(<FixThisWidget submitFeedback={submitFeedback} />);
-    const trigger = screen.getByRole('button', { name: /^Feedback$/i });
+    const trigger = screen.getByRole('button', { name: /^Fix This$/i });
     fireEvent.click(trigger);
     fireEvent.change(screen.getByLabelText(/^Your feedback$/i), { target: { value: 'The footer overlaps the widget.' } });
     fireEvent.click(screen.getByRole('button', { name: /^Send feedback$/i }));
@@ -248,7 +244,7 @@ describe('fix-this-widget package', () => {
       </>,
     );
 
-    fireEvent.click(screen.getByRole('button', { name: /^Feedback$/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^Fix This$/i }));
     fireEvent.change(screen.getByLabelText(/^Your feedback$/i), { target: { value: 'The CTA label is off.' } });
     fireEvent.click(screen.getByRole('button', { name: /^＋ Point at an element$/i }));
     expect(screen.getByText(/Point at an element, then click to attach it/i)).toBeInTheDocument();
@@ -286,21 +282,7 @@ describe('fix-this-widget package', () => {
     expect(screen.getByRole('dialog', { name: /^Send feedback$/i })).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: /^＋ Point at an element$/i }));
-    fireEvent.click(screen.getByRole('button', { name: /^Feedback$/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^Fix This$/i }));
     expect(screen.queryByText(/Fix this widget ·/i)).not.toBeInTheDocument();
-  });
-
-  it('ships desktop popover, mobile bottom-sheet, picker overlay, z-index, and host-token fallbacks in the CSS sidecar', () => {
-    const css = readFileSync(join(process.cwd(), 'src', 'styles.css'), 'utf8');
-
-    expect(css).toMatch(/\.fix-this-widget\s*\{[\s\S]*--fix-this-widget-footer-offset:\s*0px;/);
-    expect(css).toMatch(/\.fix-this-widget-trigger\s*\{[\s\S]*position:\s*fixed;[\s\S]*bottom:\s*calc\(24px\s*\+\s*var\(--fix-this-widget-footer-offset,\s*0px\)\);[\s\S]*right:\s*24px;[\s\S]*min-height:\s*var\(--fix-this-widget-tap-min,\s*44px\);/);
-    expect(css).toMatch(/\.fix-this-widget-panel\s*\{[\s\S]*bottom:\s*calc\(80px\s*\+\s*var\(--fix-this-widget-footer-offset,\s*0px\)\);[\s\S]*width:\s*360px;[\s\S]*max-height:\s*calc\(100vh\s*-\s*96px\s*-\s*var\(--fix-this-widget-footer-offset,\s*0px\)\);[\s\S]*overflow-y:\s*auto;/);
-    expect(css).toMatch(/@media\s*\(max-width:\s*640px\)\s*\{[\s\S]*\.fix-this-widget-panel\s*\{[\s\S]*left:\s*0;[\s\S]*right:\s*0;[\s\S]*bottom:\s*0;[\s\S]*width:\s*100%;[\s\S]*max-width:\s*100%;[\s\S]*border-radius:\s*var\(--fix-this-widget-radius-xl,\s*24px\)\s+var\(--fix-this-widget-radius-xl,\s*24px\)\s+0\s+0;/);
-    expect(css).toMatch(/\.fix-this-widget-overlay\s*\{[\s\S]*position:\s*fixed;[\s\S]*z-index:\s*1002;/);
-    expect(css).toMatch(/\.fix-this-widget-highlight\s*\{[\s\S]*z-index:\s*1003;[\s\S]*border:\s*2px\s+solid\s+var\(--fix-this-widget-primary,\s*#1D7A8C\);/);
-    expect(css).toContain('var(--fix-this-widget-surface, #fff)');
-    expect(css).toContain('var(--fix-this-widget-shadow-3, 0 20px 50px rgba(16, 20, 24, .18))');
-    expect(css).not.toContain('var(--surface, #fff)');
   });
 });

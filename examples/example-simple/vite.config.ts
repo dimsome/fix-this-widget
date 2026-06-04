@@ -6,7 +6,7 @@ import type { Plugin } from 'vite';
 
 function fixThisWidgetFeedbackEndpoint(): Plugin {
   const handler = createFixThisWidgetHandler({
-    filePath: 'feedback/fix-this-widget.example.jsonl',
+    filePath: 'feedback/fix-this-widget.simple.example.jsonl',
   });
 
   return {
