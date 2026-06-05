@@ -9,16 +9,19 @@ const repoRoot = fileURLToPath(new URL('..', import.meta.url));
 const workspace = await mkdtemp(join(tmpdir(), 'fix-this-widget-consumer-'));
 let tarballPath;
 
+const childEnv = { ...process.env, npm_config_dry_run: 'false' };
+
 function run(command, args, options = {}) {
   execFileSync(command, args, {
     cwd: options.cwd ?? repoRoot,
     stdio: options.stdio ?? 'inherit',
     encoding: 'utf8',
+    env: childEnv,
   });
 }
 
 try {
-  const packOutput = execFileSync('npm', ['pack', '--json'], { cwd: repoRoot, encoding: 'utf8' });
+  const packOutput = execFileSync('npm', ['pack', '--json'], { cwd: repoRoot, encoding: 'utf8', env: childEnv });
   const [{ filename }] = JSON.parse(packOutput);
   tarballPath = join(repoRoot, filename);
 
