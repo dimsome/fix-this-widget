@@ -8,7 +8,7 @@ That context is also useful input for coding agents: specific page, specific ele
 
 No screenshots. No full DOM dump. No feedback portal ceremony.
 
-![fix-this-widget example app](./docs/assets/example-closed.png)
+![Animated demo of the Fix This widget opening, selecting a page element, and submitting feedback](https://raw.githubusercontent.com/dimsome/fix-this-widget/main/docs/assets/fix-this-widget-demo.gif)
 
 ## why this exists
 
@@ -291,7 +291,7 @@ npm run typecheck
 npm run lint
 npm run build
 npm pack --dry-run --json
-npm run consumer-smoke
+npm run consumer-check
 ```
 
-`npm run build` emits ESM JavaScript, declaration files, server helpers, and `dist/styles.css`. `npm run consumer-smoke` packs the package and verifies a clean React 18 TypeScript consumer can import the published entry points.
+`npm run build` emits ESM JavaScript, declaration files, server helpers, and `dist/styles.css`. `npm run consumer-check` packs the package and verifies a clean React 18 TypeScript consumer can import the published entry points.

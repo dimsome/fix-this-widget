@@ -71,10 +71,13 @@ describe('package metadata', () => {
     });
     expect(pkg.scripts?.build).toContain('tsup');
     expect(pkg.scripts?.build).not.toContain('tsc --noEmit');
-    expect(pkg.scripts?.['consumer-smoke']).toBe('node scripts/package-consumer-smoke.mjs');
-    expect(pkg.scripts?.check).toContain('npm run consumer-smoke');
+    expect(pkg.scripts?.['consumer-check']).toBe('node scripts/package-consumer-check.mjs');
+    expect(pkg.scripts?.check).toContain('npm run consumer-check');
     expect(pkg.scripts?.prepublishOnly).toBe('npm run check');
-    expect(pkg.files).toEqual(['dist', 'README.md', 'docs/assets/example-closed.png']);
+    expect(pkg.files).toEqual([
+      'dist',
+      'README.md',
+    ]);
   });
 
   it('supports React 18 through React 20 peers, declares the server runtime, and no private host-app dependency', () => {

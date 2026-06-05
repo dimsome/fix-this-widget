@@ -46,7 +46,7 @@ const submitFeedback = async (payload: FixThisWidgetFeedbackPayload) => {
 describeFeedbackElement(document.createElement('button'));
 export const App = () => <FixThisWidget submitFeedback={submitFeedback} collectEmail={false} />;
 `);
-  await writeFile(join(workspace, 'import-smoke.mjs'), `
+  await writeFile(join(workspace, 'import-check.mjs'), `
 import { FixThisWidget } from 'fix-this-widget';
 import { createFixThisWidgetHandler } from 'fix-this-widget/server';
 import { describeFeedbackElement } from 'fix-this-widget/element-metadata';
@@ -64,8 +64,8 @@ if (typeof describeFeedbackElement !== 'function') throw new Error('metadata exp
   await mkdir(join(workspace, 'src'));
   await rename(join(workspace, 'src-app.tsx'), join(workspace, 'src/app.tsx'));
   run('npx', ['tsc', '-p', 'tsconfig.json', '--noEmit'], { cwd: workspace });
-  run('node', ['import-smoke.mjs'], { cwd: workspace });
-  console.log(`consumer smoke passed in ${workspace}`);
+  run('node', ['import-check.mjs'], { cwd: workspace });
+  console.log(`consumer check passed in ${workspace}`);
 } finally {
   chdir(repoRoot);
   if (tarballPath) await rm(tarballPath, { force: true });
