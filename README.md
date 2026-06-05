@@ -8,7 +8,7 @@ That context is also useful input for coding agents: specific page, specific ele
 
 No screenshots. No full DOM dump. No feedback portal ceremony.
 
-![Animated demo of the Fix This widget opening, selecting a page element, and submitting feedback](https://raw.githubusercontent.com/dimsome/fix-this-widget/main/docs/assets/fix-this-widget-demo.gif)
+![Animated demo of the Fix This widget opening, selecting a page element, and submitting feedback](./docs/assets/fix-this-widget-demo.gif)
 
 ## why this exists
 
