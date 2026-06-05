@@ -13,6 +13,12 @@ export interface FeedbackElementMetadata {
   type: FeedbackElementType;
   selector: string;
   selectorCandidates: string[];
+  bounds: {
+    top: number;
+    left: number;
+    width: number;
+    height: number;
+  };
   text: string | null;
   context: FeedbackElementContext;
 }
@@ -27,7 +33,37 @@ export interface FixThisWidgetViewportMetadata {
   h: number;
 }
 
+export interface FixThisWidgetScrollMetadata {
+  x: number;
+  y: number;
+}
+
 export type FixThisWidgetFeedbackSource = 'fix_this_widget' | (string & {});
+
+export type FixThisWidgetCopy = {
+  trigger: string;
+  title: string;
+  close: string;
+  noteLabel: string;
+  notePlaceholder: string;
+  emailLabel: string;
+  emailOptionalText: string;
+  emailPlaceholder: string;
+  attachElementLabel: string;
+  attachElementOptionalText: string;
+  attachElementButton: string;
+  removeAttachedElement: string;
+  submit: string;
+  submitting: string;
+  emptyNoteMessage: string;
+  submitErrorMessage: string;
+  pickerInstructions: ReactNode;
+  pickerCancel: string;
+  successTitle: string;
+  successDescription: string;
+  sendAnother: string;
+  closeSuccess: string;
+};
 
 export interface FixThisWidgetFeedbackPayload {
   source: FixThisWidgetFeedbackSource;
@@ -36,6 +72,7 @@ export interface FixThisWidgetFeedbackPayload {
   element?: FeedbackElementMetadata | null;
   page: FixThisWidgetPageMetadata;
   viewport: FixThisWidgetViewportMetadata;
+  scroll: FixThisWidgetScrollMetadata;
   ts: string;
   requestId?: string;
   sessionId?: string;
@@ -49,7 +86,7 @@ export interface FixThisWidgetFeedbackResponse {
   note?: string | null;
 }
 
-export type FixThisWidgetContext = Pick<FixThisWidgetFeedbackPayload, 'page' | 'viewport' | 'ts'>
+export type FixThisWidgetContext = Pick<FixThisWidgetFeedbackPayload, 'page' | 'viewport' | 'scroll' | 'ts'>
   & Partial<Pick<FixThisWidgetFeedbackPayload, 'requestId' | 'sessionId'>>;
 
 export type SubmitFixThisWidgetFeedback = (body: FixThisWidgetFeedbackPayload) => Promise<void | FixThisWidgetFeedbackResponse | unknown>;
@@ -62,6 +99,7 @@ export type FixThisWidgetProps = {
   feedbackSource?: FixThisWidgetFeedbackSource;
   getContext?: () => FixThisWidgetContext;
   footerContext?: ReactNode;
+  copy?: Partial<FixThisWidgetCopy>;
 };
 
 export type FeedbackSubmitState = 'idle' | 'submitting' | 'success' | 'error';

@@ -69,9 +69,11 @@ describe('package metadata', () => {
     });
     expect(pkg.scripts?.build).toContain('tsup');
     expect(pkg.scripts?.build).not.toContain('tsc --noEmit');
+    expect(pkg.scripts?.['consumer-smoke']).toBe('node scripts/package-consumer-smoke.mjs');
+    expect(pkg.scripts?.check).toContain('npm run consumer-smoke');
   });
 
-  it('supports React 18 through React 20 peers and no private WTF dependency', () => {
+  it('supports React 18 through React 20 peers and no private host-app dependency', () => {
     const pkg = readPackageJson();
     const dependencyNames = [
       ...Object.keys(pkg.dependencies ?? {}),

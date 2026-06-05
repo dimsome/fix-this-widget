@@ -49,7 +49,7 @@ export function App() {
 }
 ```
 
-By default, feedback posts to `/api/fix-this-widget/feedback`.
+By default, feedback posts to `/api/fix-this-widget/feedback`. Static apps and non-Next hosts still need to provide that POST endpoint, or pass `submitFeedback` to send feedback somewhere else.
 
 ## 2-minute backend
 
@@ -107,11 +107,21 @@ A feedback payload looks roughly like this:
     "w": 1280,
     "h": 720
   },
+  "scroll": {
+    "x": 0,
+    "y": 420
+  },
   "element": {
     "label": "Start trial",
     "type": "Button",
     "selector": "[data-feedback-id=\"start-trial\"]",
     "selectorCandidates": ["[data-feedback-id=\"start-trial\"]", "button:nth-of-type(1)"],
+    "bounds": {
+      "top": 312,
+      "left": 48,
+      "width": 144,
+      "height": 40
+    },
     "text": "Start trial"
   },
   "ts": "2026-06-03T00:00:00.000Z"
@@ -155,6 +165,7 @@ The attached element payload includes:
 - `type`: coarse target type, such as `Button`, `Link`, `Input`, or `Card/Section`
 - `selector`: best selector candidate
 - `selectorCandidates`: fallback selector candidates
+- `bounds`: selected element position and size in the viewport
 - `text`: normalized visible text, capped at 80 characters
 - `context`: bounded sanitized snippets for the target and, when useful, a nearby landmark parent
 
@@ -166,7 +177,7 @@ The widget is deliberately boring in the right places.
 
 It does not capture screenshots. It does not serialize the full page DOM. It does not collect class names, styles, arbitrary `data-*` attributes, or hidden markup.
 
-It only sends bounded metadata that helps identify the selected element: label, type, selector candidates, short visible text, and sanitized nearby context.
+It only sends bounded metadata that helps identify the selected element: label, type, selector candidates, viewport bounds, scroll position, short visible text, and sanitized nearby context.
 
 ## styling
 
@@ -176,7 +187,7 @@ The stylesheet is required:
 import 'fix-this-widget/styles.css';
 ```
 
-Customize it with namespaced CSS custom properties:
+The package stylesheet is namespaced under `.fix-this-widget`. Customize colors, spacing, and placement with package-prefixed CSS custom properties:
 
 ```css
 .fix-this-widget {
@@ -184,8 +195,32 @@ Customize it with namespaced CSS custom properties:
   --fix-this-widget-primary-hover: #6d28d9;
   --fix-this-widget-surface: #fff;
   --fix-this-widget-radius-xl: 24px;
+  --fix-this-widget-right: 32px;
+  --fix-this-widget-bottom: 88px;
+  --fix-this-widget-z-index: 2000;
+  --fix-this-widget-panel-width: 380px;
 }
 ```
+
+## copy customization
+
+All user-facing widget text has defaults and can be overridden with the `copy` prop:
+
+```tsx
+<FixThisWidget
+  copy={{
+    trigger: 'Report issue',
+    title: 'Send product feedback',
+    noteLabel: 'What should we fix?',
+    notePlaceholder: 'Describe the product issue.',
+    submit: 'Send report',
+    successTitle: 'Report saved',
+    successDescription: 'The team can review this with the selected UI context.',
+  }}
+/>
+```
+
+The object is partial. Any omitted field falls back to the default copy.
 
 ## props
 
@@ -195,8 +230,9 @@ Customize it with namespaced CSS custom properties:
 | `enableElementPicker` | `boolean` | `true` | Lets users point to the page element they want fixed. |
 | `collectEmail` | `boolean` | `true` | Shows the optional email field. Set `false` to collect notes only. |
 | `feedbackSource` | `string` | `fix_this_widget` | Labels submitted feedback for your backend or analytics pipeline. |
-| `getContext` | `() => Partial<FixThisWidgetContext>` | page URL, title, viewport, timestamp | Adds or overrides page, viewport, timestamp, request ID, or session ID fields. |
+| `getContext` | `() => Partial<FixThisWidgetContext>` | page URL, title, viewport, scroll, timestamp | Adds or overrides page, viewport, scroll, timestamp, request ID, or session ID fields. |
 | `footerContext` | `ReactNode` | `undefined` | Optional helper/context copy rendered below the submit button. |
+| `copy` | `Partial<FixThisWidgetCopy>` | built-in English copy | Overrides user-facing widget labels, helper text, errors, and success messages. |
 | `footerSelector` | `string` | `footer, [role="contentinfo"]` | Keeps the floating widget above normal semantic footers. |
 
 ## exports
@@ -210,8 +246,8 @@ Customize it with namespaced CSS custom properties:
 
 - React `>=18.2.0 <21.0.0`
 - A client-rendered React surface. In Next.js App Router, render the widget from a client component.
-- A POST endpoint at `/api/fix-this-widget/feedback` if you use the default JSONL storage path.
-- A Node/server runtime with a writable filesystem for default JSONL storage. Use `submitFeedback` for serverless, database, or external storage.
+- A POST endpoint at `/api/fix-this-widget/feedback` if you use the default submit behavior.
+- A Node/server runtime with a writable filesystem for the default JSONL helper. Use `submitFeedback` for serverless, edge, database, or external storage.
 
 ## example apps
 
@@ -237,11 +273,12 @@ The examples use the local package via `file:../..`:
   collectEmail={true}
   feedbackSource="full_config_example"
   getContext={getFullConfigContext}
+  copy={{ trigger: 'Report UI issue', noteLabel: 'What should we fix?' }}
   footerContext={<span>Custom helper copy for the form footer.</span>}
 />
 ```
 
-Each Vite dev server wires its feedback endpoint to the package JSONL helper. Submissions are written under that example's local `feedback/` directory.
+Each Vite dev server wires its own example-only feedback endpoint to the package JSONL helper. Submissions are written under that example's local `feedback/` directory. In a real app, add an equivalent backend route or use `submitFeedback`.
 
 ## development
 
@@ -252,8 +289,7 @@ npm run typecheck
 npm run lint
 npm run build
 npm pack --dry-run --json
+npm run consumer-smoke
 ```
 
-`npm run build` emits ESM JavaScript, declaration files, server helpers, and `dist/styles.css`.
-
-For release commands, see [RELEASE.md](./RELEASE.md).
+`npm run build` emits ESM JavaScript, declaration files, server helpers, and `dist/styles.css`. `npm run consumer-smoke` packs the package and verifies a clean React 18 TypeScript consumer can import the published entry points.

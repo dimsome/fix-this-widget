@@ -40,7 +40,9 @@ function isFeedbackPayload(value: unknown): value is FixThisWidgetFeedbackPayloa
     && typeof candidate.page?.url === 'string'
     && typeof candidate.page.title === 'string'
     && typeof candidate.viewport?.w === 'number'
-    && typeof candidate.viewport.h === 'number';
+    && typeof candidate.viewport.h === 'number'
+    && typeof candidate.scroll?.x === 'number'
+    && typeof candidate.scroll.y === 'number';
 }
 
 export function createFixThisWidgetHandler(options: FixThisWidgetJsonlOptions = {}): FixThisWidgetRequestHandler {

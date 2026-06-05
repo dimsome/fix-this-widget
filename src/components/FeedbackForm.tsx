@@ -1,5 +1,5 @@
 import type { FormEventHandler, ReactNode, Ref } from 'react';
-import type { FeedbackElementMetadata, FeedbackSubmitState } from '../shared/types';
+import type { FeedbackElementMetadata, FeedbackSubmitState, FixThisWidgetCopy } from '../shared/types';
 
 export type FeedbackFormProps = {
   noteId: string;
@@ -16,6 +16,7 @@ export type FeedbackFormProps = {
   enableElementPicker?: boolean;
   collectEmail?: boolean;
   footerContext?: ReactNode;
+  copy: FixThisWidgetCopy;
   onStartPicking: () => void;
   onRemoveAttached: () => void;
 };
@@ -35,6 +36,7 @@ export function FeedbackForm({
   enableElementPicker = true,
   collectEmail = true,
   footerContext,
+  copy,
   onStartPicking,
   onRemoveAttached,
 }: FeedbackFormProps) {
@@ -43,13 +45,13 @@ export function FeedbackForm({
   return (
     <form noValidate onSubmit={onSubmit}>
       <div className="fix-this-widget-field">
-        <label className="fix-this-widget-label" htmlFor={noteId}>Your feedback</label>
+        <label className="fix-this-widget-label" htmlFor={noteId}>{copy.noteLabel}</label>
         <textarea
           ref={noteRef}
           id={noteId}
           className="fix-this-widget-note"
           name="note"
-          placeholder="What's working, or what's off?"
+          placeholder={copy.notePlaceholder}
           value={note}
           onChange={(event) => onNoteChange(event.currentTarget.value)}
         />
@@ -57,13 +59,13 @@ export function FeedbackForm({
 
       {collectEmail ? (
         <div className="fix-this-widget-field">
-          <label className="fix-this-widget-label" htmlFor={emailId}>Email <span>(optional, if you'd like a reply)</span></label>
+          <label className="fix-this-widget-label" htmlFor={emailId}>{copy.emailLabel} <span>({copy.emailOptionalText})</span></label>
           <input
             id={emailId}
             className="fix-this-widget-email"
             name="email"
             type="email"
-            placeholder="you@example.com"
+            placeholder={copy.emailPlaceholder}
             autoComplete="email"
             value={email}
             onChange={(event) => onEmailChange(event.currentTarget.value)}
@@ -73,17 +75,17 @@ export function FeedbackForm({
 
       {enableElementPicker ? (
         <div className="fix-this-widget-field">
-          <span className="fix-this-widget-label">Attach an element <span>(optional)</span></span>
+          <span className="fix-this-widget-label">{copy.attachElementLabel} <span>({copy.attachElementOptionalText})</span></span>
           {attached ? (
             <div className="fix-this-widget-chip">
               <span className="fix-this-widget-chip-text">
                 <span className="fix-this-widget-chip-label">{attached.label} · {attached.type}</span>
                 <code>{attached.selector}</code>
               </span>
-              <button type="button" aria-label="Remove attached element" onClick={onRemoveAttached}>×</button>
+              <button type="button" aria-label={copy.removeAttachedElement} onClick={onRemoveAttached}>×</button>
             </div>
           ) : (
-            <button type="button" className="fix-this-widget-attach" onClick={onStartPicking}>＋ Point at an element</button>
+            <button type="button" className="fix-this-widget-attach" onClick={onStartPicking}>{copy.attachElementButton}</button>
           )}
         </div>
       ) : null}
@@ -97,7 +99,7 @@ export function FeedbackForm({
           aria-disabled={noteIsEmpty}
           disabled={submitState === 'submitting'}
         >
-          {submitState === 'submitting' ? 'Sending…' : 'Send feedback'}
+          {submitState === 'submitting' ? copy.submitting : copy.submit}
         </button>
       </div>
 

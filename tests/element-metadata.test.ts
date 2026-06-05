@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { describeFeedbackElement } from '../../src/metadata/elementMetadata';
+import { describeFeedbackElement } from '../src/metadata/elementMetadata';
 
 describe('fix-this-widget element metadata', () => {
   it('prefers public stable selector attributes and bounded sanitized context', () => {
@@ -9,6 +9,17 @@ describe('fix-this-widget element metadata', () => {
     button.setAttribute('data-testid', 'hero-testid');
     button.setAttribute('data-wallet-state', 'connected');
     button.innerHTML = '<span>Analyze transaction</span>';
+    button.getBoundingClientRect = () => ({
+      x: 20,
+      y: 10,
+      top: 10,
+      left: 20,
+      right: 140,
+      bottom: 50,
+      width: 120,
+      height: 40,
+      toJSON: () => ({}),
+    } as DOMRect);
 
     const metadata = describeFeedbackElement(button);
 
@@ -21,6 +32,7 @@ describe('fix-this-widget element metadata', () => {
         '[data-testid="hero-testid"]',
         'button',
       ],
+      bounds: { top: 10, left: 20, width: 120, height: 40 },
       text: 'Analyze transaction',
       context: {
         path: 'button',
@@ -28,7 +40,7 @@ describe('fix-this-widget element metadata', () => {
         parent: null,
       },
     });
-    expect(Object.keys(metadata).sort()).toEqual(['context', 'label', 'selector', 'selectorCandidates', 'text', 'type']);
+    expect(Object.keys(metadata).sort()).toEqual(['bounds', 'context', 'label', 'selector', 'selectorCandidates', 'text', 'type']);
     expect(JSON.stringify(metadata)).not.toMatch(/outerHTML|innerHTML|<span|walletState|data-wallet-state|screenshot|hiddenData|documentElement/i);
   });
 
@@ -71,6 +83,7 @@ describe('fix-this-widget element metadata', () => {
       type: 'Card/Section',
       selector: '#pricing-card',
       selectorCandidates: ['#pricing-card', '[aria-label="Pricing details"]', 'article'],
+      bounds: { top: 0, left: 0, width: 0, height: 0 },
       text: 'Visible price copy with enough content to be useful to product maintainers.',
       context: {
         path: 'article',
@@ -78,7 +91,7 @@ describe('fix-this-widget element metadata', () => {
         parent: null,
       },
     });
-    expect(Object.keys(metadata).sort()).toEqual(['context', 'label', 'selector', 'selectorCandidates', 'text', 'type']);
+    expect(Object.keys(metadata).sort()).toEqual(['bounds', 'context', 'label', 'selector', 'selectorCandidates', 'text', 'type']);
     expect(JSON.stringify(metadata)).not.toMatch(/outerHTML|innerHTML|raw DOM|screenshot|walletState|hiddenData|data-private|className|style|dataset|secret-wallet-state-card/i);
   });
 });

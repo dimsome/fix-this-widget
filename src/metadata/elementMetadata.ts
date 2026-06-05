@@ -164,6 +164,16 @@ function parentContextFor(element: Element): string | null {
   return hasStableAttribute || isLandmark ? contextSnippetFor(parent) : null;
 }
 
+function boundsFor(element: Element): FeedbackElementMetadata['bounds'] {
+  const rect = element.getBoundingClientRect();
+  return {
+    top: Math.round(rect.top),
+    left: Math.round(rect.left),
+    width: Math.round(rect.width),
+    height: Math.round(rect.height),
+  };
+}
+
 export function describeFeedbackElement(element: Element): FeedbackElementMetadata {
   const type = elementTypeFor(element);
   const safeType = elementTypes.has(type) ? type : 'Text';
@@ -175,6 +185,7 @@ export function describeFeedbackElement(element: Element): FeedbackElementMetada
     type: safeType,
     selector: selectorCandidates[0],
     selectorCandidates,
+    bounds: boundsFor(element),
     text: text || null,
     context: {
       path: pathSelectorFor(element),

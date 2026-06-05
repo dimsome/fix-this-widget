@@ -77,7 +77,8 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint .",
     "test": "vitest run",
-    "check": "npm test && npm run typecheck && npm run lint && npm run build && npm pack --dry-run --json",
+    "consumer-smoke": "node scripts/package-consumer-smoke.mjs",
+    "check": "npm test && npm run typecheck && npm run lint && npm run build && npm pack --dry-run --json && npm run consumer-smoke",
     "prepack": "npm run build"
   }
 }

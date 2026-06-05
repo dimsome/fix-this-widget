@@ -28,6 +28,10 @@ function getFullConfigContext() {
       w: window.innerWidth,
       h: window.innerHeight,
     },
+    scroll: {
+      x: window.scrollX,
+      y: window.scrollY,
+    },
     ts: new Date().toISOString(),
     requestId: crypto.randomUUID(),
     sessionId: 'demo-session-full-config',
@@ -70,6 +74,15 @@ function App() {
         collectEmail={true}
         feedbackSource="full_config_example"
         getContext={getFullConfigContext}
+        copy={{
+          trigger: 'Report UI issue',
+          title: 'Send product feedback',
+          noteLabel: 'What should we fix?',
+          notePlaceholder: 'Describe the issue or improvement.',
+          submit: 'Send report',
+          successTitle: 'Feedback saved',
+          successDescription: 'The team can review this note with the selected UI context.',
+        }}
         footerContext={(
           <span>
             Demo config: payloads post to <code>/api/fix-this-widget/full-config-feedback</code> with

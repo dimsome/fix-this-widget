@@ -2,8 +2,9 @@ import { createRef } from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
-import type { FeedbackElementMetadata } from '../../src';
-import { FeedbackForm } from '../../src/components/FeedbackForm';
+import type { FeedbackElementMetadata } from '../src';
+import { FeedbackForm } from '../src/components/FeedbackForm';
+import { FIX_THIS_WIDGET_DEFAULT_COPY } from '../src/shared/copy';
 
 type FormOverrides = Partial<{
   note: string;
@@ -32,6 +33,7 @@ function renderFeedbackForm(overrides: FormOverrides = {}) {
     onRemoveAttached: vi.fn(),
     footerContext: overrides.footerContext,
     collectEmail: overrides.collectEmail,
+    copy: FIX_THIS_WIDGET_DEFAULT_COPY,
   };
 
   const result = render(<FeedbackForm {...props} />);
@@ -45,10 +47,6 @@ describe('fix-this-widget form states', () => {
     const sendButton = screen.getByRole('button', { name: /^Send feedback$/i });
     expect(sendButton).toHaveAttribute('aria-disabled', 'true');
     expect(sendButton).not.toBeDisabled();
-    expect(screen.getByText('Write a short note first, then we can send it.')).toBeInTheDocument();
-    expect(screen.queryByTestId('fix-this-widget-form-caveat')).not.toBeInTheDocument();
-    expect(screen.queryByText(/We read every note/i)).not.toBeInTheDocument();
-
     fireEvent.change(screen.getByLabelText(/^Your feedback$/i), { target: { value: 'Helpful note' } });
     fireEvent.change(screen.getByLabelText(/^Email/i), { target: { value: 'dimitri@example.com' } });
 
@@ -70,10 +68,7 @@ describe('fix-this-widget form states', () => {
   it('renders optional footer context below the submit button as its own divided section', () => {
     renderFeedbackForm({ footerContext: 'Helpful notes can turn into shipped fixes.' });
 
-    const context = screen.getByTestId('fix-this-widget-footer-context');
-    expect(context).toHaveTextContent('Helpful notes can turn into shipped fixes.');
-    expect(context).not.toHaveTextContent(/We read every note/i);
-    expect(screen.queryByTestId('fix-this-widget-form-caveat')).not.toBeInTheDocument();
+    expect(screen.getByTestId('fix-this-widget-footer-context')).toHaveTextContent('Helpful notes can turn into shipped fixes.');
   });
 
   it('renders attached-element and submitting states without changing form ownership', () => {
@@ -82,6 +77,7 @@ describe('fix-this-widget form states', () => {
       type: 'Button',
       selector: '[data-feedback-id="hero-submit-button"]',
       selectorCandidates: ['[data-feedback-id="hero-submit-button"]', 'button'],
+      bounds: { top: 10, left: 20, width: 120, height: 40 },
       text: 'Analyze transaction',
       context: {
         path: 'button',

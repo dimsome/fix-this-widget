@@ -1,11 +1,12 @@
-import type { PickerHighlight } from '../shared/types';
+import type { FixThisWidgetCopy, PickerHighlight } from '../shared/types';
 
 export type FeedbackPickerOverlayProps = {
   highlight: PickerHighlight | null;
+  copy: FixThisWidgetCopy;
   onCancel: () => void;
 };
 
-export function FeedbackPickerOverlay({ highlight, onCancel }: FeedbackPickerOverlayProps) {
+export function FeedbackPickerOverlay({ highlight, copy, onCancel }: FeedbackPickerOverlayProps) {
   return (
     <div className="fix-this-widget-overlay">
       <div className="fix-this-widget-scrim" />
@@ -27,8 +28,8 @@ export function FeedbackPickerOverlay({ highlight, onCancel }: FeedbackPickerOve
         </>
       ) : null}
       <div className="fix-this-widget-instruction">
-        <span>Point at an element, then click to attach it. Press <strong>Esc</strong> to cancel.</span>
-        <button type="button" onClick={onCancel}>Cancel</button>
+        <span>{copy.pickerInstructions}</span>
+        <button type="button" onClick={onCancel}>{copy.pickerCancel}</button>
       </div>
     </div>
   );

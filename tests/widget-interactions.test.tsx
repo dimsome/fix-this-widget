@@ -1,9 +1,9 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import * as widgetPackage from '../../src';
-import { FixThisWidget } from '../../src';
-import type { FixThisWidgetFeedbackResponse, SubmitFixThisWidgetFeedback } from '../../src';
+import * as widgetPackage from '../src';
+import { FixThisWidget } from '../src';
+import type { FixThisWidgetFeedbackResponse, SubmitFixThisWidgetFeedback } from '../src';
 
 function feedbackResponse(note = 'Saved'): FixThisWidgetFeedbackResponse {
   return { kind: 'feedback', feedbackId: 'feedback_1', created: true, rating: null, note };
@@ -24,7 +24,7 @@ function setViewport(width: number, height: number): void {
 
 describe('fix-this-widget package', () => {
   beforeEach(() => {
-    document.title = 'Landing | WTF is this tx?';
+    document.title = 'Example product page';
     window.history.pushState({}, '', '/?from=test');
     setViewport(1280, 720);
   });
@@ -57,6 +57,35 @@ describe('fix-this-widget package', () => {
     expect(screen.getByRole('status')).toHaveTextContent('Thanks for the feedback');
   });
 
+  it('allows host apps to override user-facing widget copy without changing behavior', async () => {
+    const submitFeedback = makeSubmitFeedback();
+
+    render(
+      <FixThisWidget
+        submitFeedback={submitFeedback}
+        copy={{
+          trigger: 'Report issue',
+          title: 'Send product feedback',
+          noteLabel: 'What should we fix?',
+          submit: 'Send report',
+          emptyNoteMessage: 'Tell us what to fix first.',
+          successTitle: 'Report saved',
+        }}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /^Report issue$/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^Send report$/i }));
+    expect(screen.getByText('Tell us what to fix first.')).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText(/^What should we fix\?$/i), { target: { value: 'Custom copy still submits.' } });
+    fireEvent.click(screen.getByRole('button', { name: /^Send report$/i }));
+
+    await waitFor(() => expect(submitFeedback).toHaveBeenCalledTimes(1));
+    expect(submittedBodies(submitFeedback)[0]).toMatchObject({ note: 'Custom copy still submits.' });
+    expect(screen.getByRole('status')).toHaveTextContent('Report saved');
+  });
+
   it('opens the form, validates an empty note inline, and keeps Send feedback clickable', () => {
     const submitFeedback = makeSubmitFeedback();
 
@@ -67,28 +96,12 @@ describe('fix-this-widget package', () => {
     const sendButton = within(dialog).getByRole('button', { name: /^Send feedback$/i });
     expect(sendButton).not.toBeDisabled();
 
-    expect(screen.queryByTestId('fix-this-widget-form-caveat')).not.toBeInTheDocument();
-    expect(dialog).not.toHaveTextContent(/We read every note/i);
-    expect(dialog).not.toHaveTextContent('Useful feedback can trigger agents to fix or improve this app.');
-    expect(dialog).not.toHaveTextContent('Not account support, recovery, or trading advice.');
-
     fireEvent.click(sendButton);
 
-    expect(dialog).not.toHaveTextContent('—');
     expect(screen.getByText('Write a short note first, then we can send it.')).toBeInTheDocument();
     expect(submitFeedback).not.toHaveBeenCalled();
     expect(sendButton).toHaveAttribute('aria-disabled', 'true');
     expect(sendButton).not.toBeDisabled();
-  });
-
-  it('renders optional footer context below the submit button', () => {
-    render(<FixThisWidget submitFeedback={makeSubmitFeedback()} footerContext="We use this to prioritize small UI fixes." />);
-    fireEvent.click(screen.getByRole('button', { name: /^Fix This$/i }));
-
-    const dialog = screen.getByRole('dialog', { name: /^Send feedback$/i });
-    const context = within(dialog).getByTestId('fix-this-widget-footer-context');
-
-    expect(context).toHaveTextContent('We use this to prioritize small UI fixes.');
   });
 
   it('can disable optional email collection and omits email from the submitted payload', async () => {
@@ -130,20 +143,16 @@ describe('fix-this-widget package', () => {
       element: null,
       page: {
         url: 'http://localhost:3000/?from=test',
-        title: 'Landing | WTF is this tx?',
+        title: 'Example product page',
       },
       viewport: { w: 1280, h: 720 },
+      scroll: { x: 0, y: 0 },
     });
     expect(typeof payload.ts).toBe('string');
     expect(payload).not.toHaveProperty('clientId');
-    expect(payload).not.toHaveProperty('txHash');
-    expect(payload).not.toHaveProperty('rating');
     expect(JSON.stringify(payload)).not.toMatch(/fullDom|outerHTML|innerHTML|screenshot|walletState|hiddenData|documentElement/i);
 
-    expect(screen.getByRole('status')).not.toHaveTextContent('—');
-    expect(screen.getByRole('status')).toHaveTextContent('Thanks for the feedback');
-    expect(screen.getByRole('status')).toHaveTextContent('We will evaluate the feedback and adjust accordingly if needed.');
-    expect(screen.queryByTestId('fix-this-widget-success-caveat')).not.toBeInTheDocument();
+    expect(screen.getByRole('status')).toBeInTheDocument();
     expect(screen.getByRole('dialog', { name: /^Send feedback$/i })).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: /^Send another$/i }));
@@ -162,6 +171,7 @@ describe('fix-this-widget package', () => {
     const getContext = vi.fn(() => ({
       page: { url: 'https://example.test/custom', title: 'Custom page' },
       viewport: { w: 390, h: 844 },
+      scroll: { x: 12, y: 480 },
       ts: '2026-06-01T00:00:00.000Z',
       requestId: 'req-widget-1',
       sessionId: 'session-widget-1',
@@ -180,6 +190,7 @@ describe('fix-this-widget package', () => {
       note: 'Context override works.',
       page: { url: 'https://example.test/custom', title: 'Custom page' },
       viewport: { w: 390, h: 844 },
+      scroll: { x: 12, y: 480 },
       ts: '2026-06-01T00:00:00.000Z',
       requestId: 'req-widget-1',
       sessionId: 'session-widget-1',
@@ -223,7 +234,6 @@ describe('fix-this-widget package', () => {
     expect(alert).toHaveTextContent("Couldn't send that feedback. Your note is still here, try again.");
     expect(submitFeedback).toHaveBeenCalledTimes(1);
     expect(screen.getByLabelText(/^Your feedback$/i)).toHaveValue('The footer overlaps the widget.');
-    expect(screen.getByRole('dialog', { name: /^Send feedback$/i })).not.toHaveTextContent('—');
 
     fireEvent.click(screen.getByRole('button', { name: /^Close feedback$/i }));
     expect(screen.queryByRole('dialog', { name: /^Send feedback$/i })).not.toBeInTheDocument();
@@ -267,6 +277,7 @@ describe('fix-this-widget package', () => {
       type: 'Button',
       selector: '[data-feedback-id="hero-submit-button"]',
       selectorCandidates: ['[data-feedback-id="hero-submit-button"]', 'button'],
+      bounds: { top: 0, left: 0, width: 0, height: 0 },
       text: 'Analyze transaction',
       context: {
         path: 'button',

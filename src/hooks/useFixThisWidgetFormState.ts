@@ -1,6 +1,5 @@
 import { useCallback, useReducer } from 'react';
 import type { FeedbackElementMetadata, FeedbackSubmitState } from '../shared/types';
-import { EMPTY_NOTE_MESSAGE } from '../shared/copy';
 
 type FeedbackWidgetState = {
   open: boolean;
@@ -19,7 +18,7 @@ type FeedbackWidgetAction =
   | { type: 'setAttached'; attached: FeedbackElementMetadata | null }
   | { type: 'setMessage'; message: string }
   | { type: 'setSubmitState'; submitState: FeedbackSubmitState }
-  | { type: 'markEmptyNote' }
+  | { type: 'markEmptyNote'; message: string }
   | { type: 'resetForm' };
 
 const initialFeedbackWidgetState: FeedbackWidgetState = {
@@ -41,7 +40,7 @@ function feedbackWidgetReducer(state: FeedbackWidgetState, action: FeedbackWidge
       return {
         ...state,
         note: action.note,
-        message: state.message === EMPTY_NOTE_MESSAGE ? '' : state.message,
+        message: state.submitState === 'error' ? state.message : '',
       };
     case 'setEmail':
       return { ...state, email: action.email };
@@ -52,7 +51,7 @@ function feedbackWidgetReducer(state: FeedbackWidgetState, action: FeedbackWidge
     case 'setSubmitState':
       return { ...state, submitState: action.submitState };
     case 'markEmptyNote':
-      return { ...state, message: EMPTY_NOTE_MESSAGE, submitState: 'idle' };
+      return { ...state, message: action.message, submitState: 'idle' };
     case 'resetForm':
       return {
         ...state,
@@ -80,7 +79,7 @@ export function useFixThisWidgetFormState() {
   const clearAttached = useCallback(() => dispatch({ type: 'setAttached', attached: null }), []);
   const setMessage = useCallback((message: string) => dispatch({ type: 'setMessage', message }), []);
   const setSubmitState = useCallback((submitState: FeedbackSubmitState) => dispatch({ type: 'setSubmitState', submitState }), []);
-  const markEmptyNote = useCallback(() => dispatch({ type: 'markEmptyNote' }), []);
+  const markEmptyNote = useCallback((message: string) => dispatch({ type: 'markEmptyNote', message }), []);
   const resetForm = useCallback(() => dispatch({ type: 'resetForm' }), []);
 
   return {

@@ -10,11 +10,13 @@ import { SITE_FOOTER_SELECTOR, useFixThisWidgetFooterStyle } from '../hooks/useF
 import { useFixThisWidgetFormState } from '../hooks/useFixThisWidgetFormState';
 import { useFixThisWidgetPicker } from '../hooks/useFixThisWidgetPicker';
 import { useStableEvent } from '../hooks/useStableEvent';
+import { mergeFixThisWidgetCopy } from '../shared/copy';
 
 function defaultFixThisWidgetContext(): FixThisWidgetContext {
   return {
     page: { url: window.location.href, title: document.title },
     viewport: { w: window.innerWidth, h: window.innerHeight },
+    scroll: { x: window.scrollX, y: window.scrollY },
     ts: new Date().toISOString(),
   };
 }
@@ -41,7 +43,9 @@ export function FixThisWidget({
   feedbackSource = 'fix_this_widget',
   getContext = defaultFixThisWidgetContext,
   footerContext,
+  copy,
 }: FixThisWidgetProps) {
+  const resolvedCopy = mergeFixThisWidgetCopy(copy);
   const reactId = useId();
   const panelId = widgetId(reactId, 'panel');
   const titleId = widgetId(reactId, 'title');
@@ -112,7 +116,7 @@ export function FixThisWidget({
     event.preventDefault();
 
     if (noteIsEmpty) {
-      actions.markEmptyNote();
+      actions.markEmptyNote(resolvedCopy.emptyNoteMessage);
       noteRef.current?.focus();
       return;
     }
@@ -133,7 +137,7 @@ export function FixThisWidget({
       actions.setSubmitState('success');
     } catch {
       actions.setSubmitState('error');
-      actions.setMessage("Couldn't send that feedback. Your note is still here, try again.");
+      actions.setMessage(resolvedCopy.submitErrorMessage);
     }
   }
 
@@ -159,14 +163,14 @@ export function FixThisWidget({
         <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <path d="M21 11.5a8.38 8.38 0 0 1-8.5 8.4 8.5 8.5 0 0 1-3.9-.9L3 21l1.9-5.1A8.38 8.38 0 0 1 4 11.5 8.5 8.5 0 0 1 12.5 3 8.38 8.38 0 0 1 21 11.5Z" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
-        <span>Fix This</span>
+        <span>{resolvedCopy.trigger}</span>
       </button>
 
       {state.open ? (
         <div id={panelId} className="fix-this-widget-panel" role="dialog" aria-modal="false" aria-labelledby={titleId}>
           <div className="fix-this-widget-panel-head">
-            <h2 id={titleId}>Send feedback</h2>
-            <button type="button" className="fix-this-widget-close" aria-label="Close feedback" onClick={() => closePanel({ restoreFocus: true })}>
+            <h2 id={titleId}>{resolvedCopy.title}</h2>
+            <button type="button" className="fix-this-widget-close" aria-label={resolvedCopy.close} onClick={() => closePanel({ restoreFocus: true })}>
               <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
                 <path d="M4 4l8 8M12 4l-8 8" />
               </svg>
@@ -174,7 +178,7 @@ export function FixThisWidget({
           </div>
 
           {isSuccess ? (
-            <FeedbackSuccess onSendAnother={actions.resetForm} onDone={handleDone} />
+            <FeedbackSuccess copy={resolvedCopy} onSendAnother={actions.resetForm} onDone={handleDone} />
           ) : (
             <FeedbackForm
               noteId={noteId}
@@ -191,6 +195,7 @@ export function FixThisWidget({
               enableElementPicker={enableElementPicker}
               collectEmail={collectEmail}
               footerContext={footerContext}
+              copy={resolvedCopy}
               onStartPicking={picker.startPicking}
               onRemoveAttached={actions.clearAttached}
             />
@@ -199,7 +204,7 @@ export function FixThisWidget({
       ) : null}
 
       {picker.picking ? (
-        <FeedbackPickerOverlay highlight={picker.highlight} onCancel={() => picker.stopPicking(true)} />
+        <FeedbackPickerOverlay highlight={picker.highlight} copy={resolvedCopy} onCancel={() => picker.stopPicking(true)} />
       ) : null}
     </div>
   );
