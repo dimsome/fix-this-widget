@@ -94,4 +94,27 @@ describe('fix-this-widget element metadata', () => {
     expect(Object.keys(metadata).sort()).toEqual(['bounds', 'context', 'label', 'selector', 'selectorCandidates', 'text', 'type']);
     expect(JSON.stringify(metadata)).not.toMatch(/outerHTML|innerHTML|raw DOM|screenshot|walletState|hiddenData|data-private|className|style|dataset|secret-wallet-state-card/i);
   });
+
+  it('uses attribute selectors for arbitrary host ids and redacts tokenized href context', () => {
+    const link = document.createElement('a');
+    link.id = 'checkout:primary.cta';
+    link.href = 'https://example.test/reset?token=secret#hash';
+    link.className = 'private-reset-link';
+    link.setAttribute('data-private-token', 'secret');
+    link.textContent = 'Reset password';
+
+    const metadata = describeFeedbackElement(link);
+
+    expect(metadata).toMatchObject({
+      label: 'Reset password',
+      type: 'Link',
+      selector: '[id="checkout:primary.cta"]',
+      selectorCandidates: ['[id="checkout:primary.cta"]', 'a'],
+      context: {
+        path: 'a',
+        target: '<a id="checkout:primary.cta" href="https://example.test/reset">Reset password</a>',
+      },
+    });
+    expect(JSON.stringify(metadata)).not.toMatch(/token=secret|#hash|data-private-token|private-reset-link|class=/i);
+  });
 });

@@ -8,7 +8,7 @@ function App() {
     return (
         <main className="example-shell">
             <section className="example-card">
-                <p className="example-eyebrow">zero-config example</p>
+                <p className="example-eyebrow">default endpoint example</p>
                 <h1>Point, describe, send.</h1>
                 <p>
                     Use the Fix This button to attach a page element and write a
@@ -26,7 +26,8 @@ function App() {
             </section>
 
             {/*
-           Just add it here, Zero config, done!
+           The widget UI uses defaults here. This example's Vite middleware supplies
+           the matching /api/fix-this-widget/feedback endpoint for local storage.
             */}
             <FixThisWidget />
         </main>

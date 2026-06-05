@@ -23,6 +23,23 @@ function selectorValue(value: string): string {
   return value.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
 }
 
+function isSafeCssIdentifier(value: string): boolean {
+  return /^-?[_a-zA-Z][-_a-zA-Z0-9]*$/.test(value);
+}
+
+function hrefWithoutQueryOrHash(value: string): string {
+  const trimmed = value.trim();
+  try {
+    const baseUrl = 'https://fix-this-widget.local';
+    const parsed = new URL(trimmed, baseUrl);
+    if (/^[a-z][a-z\d+.-]*:\/\//i.test(trimmed)) return `${parsed.origin}${parsed.pathname}`;
+    if (trimmed.startsWith('/')) return parsed.pathname;
+    return parsed.pathname.replace(/^\//, '') || trimmed.split(/[?#]/, 1)[0];
+  } catch {
+    return trimmed.split(/[?#]/, 1)[0];
+  }
+}
+
 function escapeContextText(value: string): string {
   return value
     .replace(/&/g, '&amp;')
@@ -120,7 +137,7 @@ function selectorCandidateForAttribute(element: Element, attribute: string): str
   const value = attribute === 'id' ? element.id : element.getAttribute(attribute);
   if (!value) return null;
 
-  if (attribute === 'id') return `#${selectorValue(value)}`;
+  if (attribute === 'id' && isSafeCssIdentifier(value)) return `#${selectorValue(value)}`;
   return `[${attribute}="${selectorValue(value)}"]`;
 }
 
@@ -138,8 +155,9 @@ function safeAttributeMarkup(element: Element): string {
 
   for (const attribute of Array.from(element.attributes)) {
     if (!safeContextAttributes.has(attribute.name)) continue;
-    if (!attribute.value) continue;
-    attributes.push(`${attribute.name}="${escapeContextText(truncate(attribute.value, 80))}"`);
+    const rawValue = attribute.name === 'href' ? hrefWithoutQueryOrHash(attribute.value) : attribute.value;
+    if (!rawValue) continue;
+    attributes.push(`${attribute.name}="${escapeContextText(truncate(rawValue, 80))}"`);
   }
 
   return attributes.length ? ` ${attributes.join(' ')}` : '';

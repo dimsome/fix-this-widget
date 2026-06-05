@@ -52,6 +52,9 @@
     "react": ">=18.2.0 <21.0.0",
     "react-dom": ">=18.2.0 <21.0.0"
   },
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "devDependencies": {
     "@testing-library/dom": "10.4.1",
     "@testing-library/jest-dom": "6.9.1",
@@ -78,7 +81,9 @@
     "lint": "eslint .",
     "test": "vitest run",
     "consumer-smoke": "node scripts/package-consumer-smoke.mjs",
-    "check": "npm test && npm run typecheck && npm run lint && npm run build && npm pack --dry-run --json && npm run consumer-smoke",
+    "examples:check": "npm --prefix examples/example-simple run typecheck && npm --prefix examples/example-simple run build && npm --prefix examples/example-full run typecheck && npm --prefix examples/example-full run build",
+    "examples:audit": "npm --prefix examples/example-simple audit --audit-level=high && npm --prefix examples/example-full audit --audit-level=high",
+    "check": "npm test && npm run typecheck && npm run lint && npm run build && npm pack --dry-run --json && npm run consumer-smoke && npm run examples:check && npm run examples:audit",
     "prepack": "npm run build"
   }
 }

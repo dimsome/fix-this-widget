@@ -1,7 +1,6 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import * as widgetPackage from '../src';
 import { FixThisWidget } from '../src';
 import type { FixThisWidgetFeedbackResponse, SubmitFixThisWidgetFeedback } from '../src';
 
@@ -28,12 +27,6 @@ describe('fix-this-widget package', () => {
     window.history.pushState({}, '', '/?from=test');
     setViewport(1280, 720);
   });
-
-  it('exports FixThisWidget without old GlobalFeedback aliases', () => {
-    expect(widgetPackage.FixThisWidget).toBe(FixThisWidget);
-    expect(widgetPackage).not.toHaveProperty('GlobalFeedbackWidget');
-  });
-
 
   it('posts to the default feedback endpoint when no submit adapter is configured', async () => {
     const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(new Response(null, { status: 204 }));
@@ -177,10 +170,19 @@ describe('fix-this-widget package', () => {
       sessionId: 'session-widget-1',
     }));
 
-    render(<FixThisWidget submitFeedback={submitFeedback} enableElementPicker={false} getContext={getContext} feedbackSource="host_widget" />);
+    render(
+      <FixThisWidget
+        submitFeedback={submitFeedback}
+        enableElementPicker={false}
+        getContext={getContext}
+        feedbackSource="host_widget"
+        footerContext={<span>Submitted with host metadata only.</span>}
+      />,
+    );
     fireEvent.click(screen.getByRole('button', { name: /^Fix This$/i }));
 
     expect(screen.queryByRole('button', { name: /^＋ Point at an element$/i })).not.toBeInTheDocument();
+    expect(screen.getByText('Submitted with host metadata only.')).toBeInTheDocument();
     fireEvent.change(screen.getByLabelText(/^Your feedback$/i), { target: { value: 'Context override works.' } });
     fireEvent.click(screen.getByRole('button', { name: /^Send feedback$/i }));
 

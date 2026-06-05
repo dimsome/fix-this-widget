@@ -247,7 +247,7 @@ The object is partial. Any omitted field falls back to the default copy.
 - React `>=18.2.0 <21.0.0`
 - A client-rendered React surface. In Next.js App Router, render the widget from a client component.
 - A POST endpoint at `/api/fix-this-widget/feedback` if you use the default submit behavior.
-- A Node/server runtime with a writable filesystem for the default JSONL helper. Use `submitFeedback` for serverless, edge, database, or external storage.
+- A Node 18+ server runtime with a writable filesystem for the default JSONL helper. Use `submitFeedback` for serverless, edge, database, or external storage.
 
 ## example apps
 
@@ -262,7 +262,7 @@ npm run example-full
 
 The examples use the local package via `file:../..`:
 
-- [`examples/example-simple`](./examples/example-simple): renders `<FixThisWidget />` with the default endpoint.
+- [`examples/example-simple`](./examples/example-simple): renders `<FixThisWidget />` with the default endpoint. The example's Vite dev server wires that endpoint with `fix-this-widget/server`; production apps need their own POST route or a `submitFeedback` adapter.
 - [`examples/example-full`](./examples/example-full): passes every adjustable widget prop:
 
 ```tsx

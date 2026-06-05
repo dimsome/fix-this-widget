@@ -1,4 +1,4 @@
-import { mkdir, mkdtemp, rename, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, rename, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { chdir } from 'node:process';
@@ -57,6 +57,10 @@ if (typeof describeFeedbackElement !== 'function') throw new Error('metadata exp
 `);
 
   run('npm', ['install', tarballPath, 'react@18.2.0', 'react-dom@18.2.0', '@types/react@18.2.79', '@types/react-dom@18.2.25', 'typescript@5.6.3'], { cwd: workspace });
+  const installedEntry = await readFile(join(workspace, 'node_modules/fix-this-widget/dist/index.js'), 'utf8');
+  if (!installedEntry.startsWith('"use client";\n')) {
+    throw new Error('Packed dist/index.js is missing the Next.js client component directive');
+  }
   await mkdir(join(workspace, 'src'));
   await rename(join(workspace, 'src-app.tsx'), join(workspace, 'src/app.tsx'));
   run('npx', ['tsc', '-p', 'tsconfig.json', '--noEmit'], { cwd: workspace });

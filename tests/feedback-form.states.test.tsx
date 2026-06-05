@@ -65,12 +65,6 @@ describe('fix-this-widget form states', () => {
     expect(props.onEmailChange).not.toHaveBeenCalled();
   });
 
-  it('renders optional footer context below the submit button as its own divided section', () => {
-    renderFeedbackForm({ footerContext: 'Helpful notes can turn into shipped fixes.' });
-
-    expect(screen.getByTestId('fix-this-widget-footer-context')).toHaveTextContent('Helpful notes can turn into shipped fixes.');
-  });
-
   it('renders attached-element and submitting states without changing form ownership', () => {
     const attached: FeedbackElementMetadata = {
       label: 'Hero submit button',

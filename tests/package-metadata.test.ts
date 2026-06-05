@@ -20,6 +20,7 @@ type PackageJson = {
   peerDependencies?: Record<string, string>;
   dependencies?: Record<string, string>;
   devDependencies?: Record<string, string>;
+  engines?: Record<string, string>;
 };
 
 function readPackageJson(): PackageJson {
@@ -73,7 +74,7 @@ describe('package metadata', () => {
     expect(pkg.scripts?.check).toContain('npm run consumer-smoke');
   });
 
-  it('supports React 18 through React 20 peers and no private host-app dependency', () => {
+  it('supports React 18 through React 20 peers, declares the server runtime, and no private host-app dependency', () => {
     const pkg = readPackageJson();
     const dependencyNames = [
       ...Object.keys(pkg.dependencies ?? {}),
@@ -83,12 +84,17 @@ describe('package metadata', () => {
 
     expect(pkg.peerDependencies?.react).toBe('>=18.2.0 <21.0.0');
     expect(pkg.peerDependencies?.['react-dom']).toBe('>=18.2.0 <21.0.0');
+    expect(pkg.engines?.node).toBe('>=18.0.0');
     expect(dependencyNames.filter((name) => name.startsWith('@wtf-is-this-tx/'))).toEqual([]);
   });
 
-  it('keeps the built React entry marked as a client component', () => {
+  it('keeps examples in the release gate so consumer demos do not drift', () => {
     const pkg = readPackageJson();
 
-    expect(pkg.scripts?.build).toContain('scripts/mark-client-entry.mjs');
+    expect(pkg.scripts?.['examples:check']).toContain('examples/example-simple');
+    expect(pkg.scripts?.['examples:check']).toContain('examples/example-full');
+    expect(pkg.scripts?.['examples:audit']).toContain('audit --audit-level=high');
+    expect(pkg.scripts?.check).toContain('npm run examples:check');
+    expect(pkg.scripts?.check).toContain('npm run examples:audit');
   });
 });

@@ -14,7 +14,7 @@ npm install
 npm run check
 ```
 
-Inspect the dry-run output before publishing. The package should contain `package.json`, `README.md`, and built `dist` files only.
+Inspect the dry-run output before publishing. The package should contain `package.json`, `README.md`, built `dist` files, and the README screenshot under `docs/assets/`.
 
 ## Publish
 
