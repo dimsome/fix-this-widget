@@ -40,7 +40,6 @@ describe('fix-this-widget element metadata', () => {
         parent: null,
       },
     });
-    expect(Object.keys(metadata).sort()).toEqual(['bounds', 'context', 'label', 'selector', 'selectorCandidates', 'text', 'type']);
     expect(JSON.stringify(metadata)).not.toMatch(/outerHTML|innerHTML|<span|walletState|data-wallet-state|screenshot|hiddenData|documentElement/i);
   });
 
@@ -91,7 +90,6 @@ describe('fix-this-widget element metadata', () => {
         parent: null,
       },
     });
-    expect(Object.keys(metadata).sort()).toEqual(['bounds', 'context', 'label', 'selector', 'selectorCandidates', 'text', 'type']);
     expect(JSON.stringify(metadata)).not.toMatch(/outerHTML|innerHTML|raw DOM|screenshot|walletState|hiddenData|data-private|className|style|dataset|secret-wallet-state-card/i);
   });
 

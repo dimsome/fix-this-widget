@@ -25,7 +25,7 @@
   "files": [
     "dist",
     "README.md",
-    "docs/assets"
+    "docs/assets/example-closed.png"
   ],
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -84,6 +84,7 @@
     "examples:check": "npm --prefix examples/example-simple run typecheck && npm --prefix examples/example-simple run build && npm --prefix examples/example-full run typecheck && npm --prefix examples/example-full run build",
     "examples:audit": "npm --prefix examples/example-simple audit --audit-level=high && npm --prefix examples/example-full audit --audit-level=high",
     "check": "npm test && npm run typecheck && npm run lint && npm run build && npm pack --dry-run --json && npm run consumer-smoke && npm run examples:check && npm run examples:audit",
-    "prepack": "npm run build"
+    "prepack": "npm run build",
+    "prepublishOnly": "npm run check"
   }
 }

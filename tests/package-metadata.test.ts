@@ -21,6 +21,7 @@ type PackageJson = {
   dependencies?: Record<string, string>;
   devDependencies?: Record<string, string>;
   engines?: Record<string, string>;
+  files?: string[];
 };
 
 function readPackageJson(): PackageJson {
@@ -72,6 +73,8 @@ describe('package metadata', () => {
     expect(pkg.scripts?.build).not.toContain('tsc --noEmit');
     expect(pkg.scripts?.['consumer-smoke']).toBe('node scripts/package-consumer-smoke.mjs');
     expect(pkg.scripts?.check).toContain('npm run consumer-smoke');
+    expect(pkg.scripts?.prepublishOnly).toBe('npm run check');
+    expect(pkg.files).toEqual(['dist', 'README.md', 'docs/assets/example-closed.png']);
   });
 
   it('supports React 18 through React 20 peers, declares the server runtime, and no private host-app dependency', () => {

@@ -89,6 +89,12 @@ export interface FixThisWidgetFeedbackResponse {
 export type FixThisWidgetContext = Pick<FixThisWidgetFeedbackPayload, 'page' | 'viewport' | 'scroll' | 'ts'>
   & Partial<Pick<FixThisWidgetFeedbackPayload, 'requestId' | 'sessionId'>>;
 
+export type FixThisWidgetContextOverride = Partial<Pick<FixThisWidgetFeedbackPayload, 'ts' | 'requestId' | 'sessionId'>> & {
+  page?: Partial<FixThisWidgetPageMetadata>;
+  viewport?: Partial<FixThisWidgetViewportMetadata>;
+  scroll?: Partial<FixThisWidgetScrollMetadata>;
+};
+
 export type SubmitFixThisWidgetFeedback = (body: FixThisWidgetFeedbackPayload) => Promise<void | FixThisWidgetFeedbackResponse | unknown>;
 
 export type FixThisWidgetProps = {
@@ -97,7 +103,7 @@ export type FixThisWidgetProps = {
   enableElementPicker?: boolean;
   collectEmail?: boolean;
   feedbackSource?: FixThisWidgetFeedbackSource;
-  getContext?: () => FixThisWidgetContext;
+  getContext?: () => FixThisWidgetContextOverride;
   footerContext?: ReactNode;
   copy?: Partial<FixThisWidgetCopy>;
 };

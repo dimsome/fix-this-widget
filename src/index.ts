@@ -3,6 +3,7 @@ export type {
   FeedbackElementMetadata,
   FeedbackElementType,
   FixThisWidgetContext,
+  FixThisWidgetContextOverride,
   FixThisWidgetCopy,
   FixThisWidgetFeedbackPayload,
   FixThisWidgetFeedbackResponse,

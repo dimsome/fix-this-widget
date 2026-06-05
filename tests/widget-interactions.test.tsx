@@ -199,6 +199,45 @@ describe('fix-this-widget package', () => {
     });
   });
 
+  it('merges partial host context overrides with default browser context', async () => {
+    const submitFeedback = makeSubmitFeedback();
+    const getContext = vi.fn(() => ({
+      page: { title: 'Partial host title' },
+      scroll: { y: 88 },
+      requestId: 'req-partial-context',
+    }));
+
+    render(<FixThisWidget submitFeedback={submitFeedback} getContext={getContext} />);
+    fireEvent.click(screen.getByRole('button', { name: /^Fix This$/i }));
+    fireEvent.change(screen.getByLabelText(/^Your feedback$/i), { target: { value: 'Partial context should not drop defaults.' } });
+    fireEvent.click(screen.getByRole('button', { name: /^Send feedback$/i }));
+
+    await waitFor(() => expect(submitFeedback).toHaveBeenCalledTimes(1));
+    const [payload] = submittedBodies(submitFeedback);
+    expect(payload).toMatchObject({
+      note: 'Partial context should not drop defaults.',
+      page: { url: 'http://localhost:3000/?from=test', title: 'Partial host title' },
+      viewport: { w: 1280, h: 720 },
+      scroll: { x: 0, y: 88 },
+      requestId: 'req-partial-context',
+    });
+    expect(typeof payload.ts).toBe('string');
+  });
+
+  it('portals fixed widget layers to the document body instead of transformed host containers', () => {
+    render(
+      <div data-testid="transformed-host" style={{ transform: 'translateZ(0)' }}>
+        <FixThisWidget submitFeedback={makeSubmitFeedback()} />
+      </div>,
+    );
+
+    const trigger = screen.getByRole('button', { name: /^Fix This$/i });
+
+    expect(within(screen.getByTestId('transformed-host')).queryByRole('button', { name: /^Fix This$/i })).not.toBeInTheDocument();
+    expect(trigger.closest('[data-testid="transformed-host"]')).toBeNull();
+    expect(trigger.closest('[data-fix-this-widget]')?.parentElement).toBe(document.body);
+  });
+
   it('renders multiple widget instances with distinct generated ids and label wiring', () => {
     render(
       <>

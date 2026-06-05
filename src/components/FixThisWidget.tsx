@@ -1,11 +1,12 @@
 'use client';
 
-import { useEffect, useId, useRef } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
+import { createPortal } from 'react-dom';
 import { FeedbackForm } from './FeedbackForm';
 import { FeedbackPickerOverlay } from './FeedbackPickerOverlay';
 import { FeedbackSuccess } from './FeedbackSuccess';
-import type { FixThisWidgetContext, FixThisWidgetFeedbackPayload, FixThisWidgetProps } from '../shared/types';
+import type { FixThisWidgetContext, FixThisWidgetContextOverride, FixThisWidgetFeedbackPayload, FixThisWidgetProps } from '../shared/types';
 import { SITE_FOOTER_SELECTOR, useFixThisWidgetFooterStyle } from '../hooks/useFixThisWidgetFooterStyle';
 import { useFixThisWidgetFormState } from '../hooks/useFixThisWidgetFormState';
 import { useFixThisWidgetPicker } from '../hooks/useFixThisWidgetPicker';
@@ -19,6 +20,25 @@ function defaultFixThisWidgetContext(): FixThisWidgetContext {
     scroll: { x: window.scrollX, y: window.scrollY },
     ts: new Date().toISOString(),
   };
+}
+
+function mergeFixThisWidgetContext(
+  fallback: FixThisWidgetContext,
+  override: FixThisWidgetContextOverride = {},
+): FixThisWidgetContext {
+  const context: FixThisWidgetContext = {
+    page: { ...fallback.page, ...override.page },
+    viewport: { ...fallback.viewport, ...override.viewport },
+    scroll: { ...fallback.scroll, ...override.scroll },
+    ts: override.ts ?? fallback.ts,
+  };
+  const requestId = override.requestId ?? fallback.requestId;
+  const sessionId = override.sessionId ?? fallback.sessionId;
+
+  if (requestId !== undefined) context.requestId = requestId;
+  if (sessionId !== undefined) context.sessionId = sessionId;
+
+  return context;
 }
 
 function widgetId(baseId: string, suffix: string): string {
@@ -41,7 +61,7 @@ export function FixThisWidget({
   enableElementPicker = true,
   collectEmail = true,
   feedbackSource = 'fix_this_widget',
-  getContext = defaultFixThisWidgetContext,
+  getContext,
   footerContext,
   copy,
 }: FixThisWidgetProps) {
@@ -54,6 +74,7 @@ export function FixThisWidget({
   const rootRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const noteRef = useRef<HTMLTextAreaElement>(null);
+  const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
   const rootStyle = useFixThisWidgetFooterStyle(footerSelector);
   const { state, noteIsEmpty, actions } = useFixThisWidgetFormState();
   const isSuccess = state.submitState === 'success';
@@ -62,6 +83,10 @@ export function FixThisWidget({
     onAttach: actions.setAttached,
     onPanelOpenChange: actions.setOpen,
   });
+
+  useEffect(() => {
+    setPortalTarget(document.body);
+  }, []);
 
   function closePanel({ restoreFocus = false }: { restoreFocus?: boolean } = {}) {
     actions.closePanel();
@@ -125,6 +150,7 @@ export function FixThisWidget({
     actions.setMessage('');
 
     const trimmedEmail = state.email.trim();
+    const context = mergeFixThisWidgetContext(defaultFixThisWidgetContext(), getContext?.());
 
     try {
       await submitFeedback({
@@ -132,7 +158,7 @@ export function FixThisWidget({
         note: state.note.trim(),
         ...(collectEmail && trimmedEmail ? { email: trimmedEmail } : {}),
         element: state.attached,
-        ...getContext(),
+        ...context,
       });
       actions.setSubmitState('success');
     } catch {
@@ -146,7 +172,7 @@ export function FixThisWidget({
     closePanel({ restoreFocus: true });
   }
 
-  return (
+  const widgetSurface = (
     <div ref={rootRef} className="fix-this-widget" data-fix-this-widget style={rootStyle}>
       <button
         ref={triggerRef}
@@ -208,4 +234,6 @@ export function FixThisWidget({
       ) : null}
     </div>
   );
+
+  return portalTarget ? createPortal(widgetSurface, portalTarget) : null;
 }

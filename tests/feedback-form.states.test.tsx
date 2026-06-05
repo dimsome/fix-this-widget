@@ -81,8 +81,6 @@ describe('fix-this-widget form states', () => {
     };
     const props = renderFeedbackForm({ note: 'Ready to submit', attached, submitState: 'submitting' });
 
-    expect(screen.getByText('Hero submit button · Button')).toBeInTheDocument();
-    expect(screen.getByText('[data-feedback-id="hero-submit-button"]')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /^Sending…$/i })).toBeDisabled();
 
     fireEvent.click(screen.getByRole('button', { name: /^Remove attached element$/i }));

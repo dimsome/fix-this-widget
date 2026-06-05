@@ -202,6 +202,8 @@ The package stylesheet is namespaced under `.fix-this-widget`. Customize colors,
 }
 ```
 
+The floating trigger, panel, and picker overlay render in a `document.body` portal so transformed host containers do not trap fixed positioning.
+
 ## copy customization
 
 All user-facing widget text has defaults and can be overridden with the `copy` prop:
@@ -230,7 +232,7 @@ The object is partial. Any omitted field falls back to the default copy.
 | `enableElementPicker` | `boolean` | `true` | Lets users point to the page element they want fixed. |
 | `collectEmail` | `boolean` | `true` | Shows the optional email field. Set `false` to collect notes only. |
 | `feedbackSource` | `string` | `fix_this_widget` | Labels submitted feedback for your backend or analytics pipeline. |
-| `getContext` | `() => Partial<FixThisWidgetContext>` | page URL, title, viewport, scroll, timestamp | Adds or overrides page, viewport, scroll, timestamp, request ID, or session ID fields. |
+| `getContext` | `() => FixThisWidgetContextOverride` | page URL, title, viewport, scroll, timestamp | Adds or overrides page, viewport, scroll, timestamp, request ID, or session ID fields. Partial page/viewport/scroll values are merged with browser defaults. |
 | `footerContext` | `ReactNode` | `undefined` | Optional helper/context copy rendered below the submit button. |
 | `copy` | `Partial<FixThisWidgetCopy>` | built-in English copy | Overrides user-facing widget labels, helper text, errors, and success messages. |
 | `footerSelector` | `string` | `footer, [role="contentinfo"]` | Keeps the floating widget above normal semantic footers. |
