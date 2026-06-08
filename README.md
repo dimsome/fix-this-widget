@@ -1,62 +1,49 @@
-# Official "Fix This"-Widget
+# Official "fix-this"-widget
 
 [![npm version](https://img.shields.io/npm/v/fix-this-widget.svg)](https://www.npmjs.com/package/fix-this-widget)
 [![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 
-Let users say "fix this" while they are looking at the broken thing.
+A tiny React widget for turning vague UI feedback into actionable fix requests, ready to route into coding agents or your own triage flow.
 
-`fix-this-widget` is a tiny React feedback widget for product teams, indie builders, and internal tools where vague bug reports are expensive. Users click a floating button, write a short note, optionally point at the exact UI element, and your app receives the context needed to fix it.
-
-That context is also useful input for coding agents: specific page, specific element, human note, and bounded metadata. Good enough to queue, triage, and hand to an AI-assisted fix loop.
+Users click **Fix This**, write a note, optionally point at the broken element, and your app receives page context, viewport data, scroll position, timestamp, and selected-element metadata.
 
 No screenshots. No full DOM dump. No feedback portal ceremony.
 
 ![Animated demo of the Fix This widget opening, selecting a page element, and submitting feedback](./docs/assets/fix-this-widget-demo.gif)
 
-## why this exists
+## What you get
 
-Most product feedback gets worse as it travels.
+- Floating React feedback widget with TypeScript types
+- Optional element picker, no required app markup
+- Default POST target at `/api/fix-this-widget/feedback`
+- Next.js route helper that writes JSONL for quick internal testing
+- Custom `submitFeedback` hook for databases, queues, issue trackers, Slack, Linear, GitHub Issues, coding agents, or your own API
+- React 18 and 19 support
 
-> "The button is weird."
-> "This page broke."
-> "I don't know what happened."
-
-That usually means another round trip: which page, which button, what browser size, what were you looking at?
-
-`fix-this-widget` captures the useful bits at the moment of frustration:
-
-- the user's note
-- optional email
-- current page URL and title
-- viewport size
-- timestamp
-- optional selected element metadata
-- safe nearby context for the selected element
-
-You get a compact fix request instead of a detective job.
-
-## install
+## Install
 
 ```bash
 npm install fix-this-widget
 ```
 
-Add the widget and stylesheet:
+Render the widget from a client-rendered React surface:
 
 ```tsx
+'use client';
+
 import { FixThisWidget } from 'fix-this-widget';
 import 'fix-this-widget/styles.css';
 
-export function App() {
+export function FeedbackWidget() {
   return <FixThisWidget />;
 }
 ```
 
-By default, feedback posts to `/api/fix-this-widget/feedback`. Static apps and non-Next hosts still need to provide that POST endpoint, or pass `submitFeedback` to send feedback somewhere else.
+By default, submissions post to `/api/fix-this-widget/feedback`.
 
-## 2-minute backend
+## Add a backend
 
-For Next.js App Router, add this route:
+For Next.js App Router, add the default JSONL endpoint:
 
 ```ts
 // app/api/fix-this-widget/feedback/route.ts
@@ -65,9 +52,7 @@ import { createFixThisWidgetHandler } from 'fix-this-widget/server';
 export const POST = createFixThisWidgetHandler();
 ```
 
-That appends each request to `feedback/fix-this-widget.jsonl` relative to your app working directory.
-
-Want a different file?
+Valid requests are appended to `feedback/fix-this-widget.jsonl` relative to your app working directory.
 
 ```ts
 export const POST = createFixThisWidgetHandler({
@@ -75,12 +60,12 @@ export const POST = createFixThisWidgetHandler({
 });
 ```
 
-Want to send feedback to your own API, database, Linear, GitHub Issues, Slack, or queue? Pass `submitFeedback`:
+Use `submitFeedback` instead of the JSONL helper for serverless storage, edge runtimes, databases, queues, issue creation, notifications, or any backend that should not write to local disk.
 
 ```tsx
 <FixThisWidget
   submitFeedback={async (payload) => {
-    const response = await fetch('/feedback', {
+    const response = await fetch('/api/feedback', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
@@ -93,83 +78,58 @@ Want to send feedback to your own API, database, Linear, GitHub Issues, Slack, o
 
 The callback may resolve with `void` or any host response. The widget only needs success or failure.
 
-### existing strict backend
+## Strict backends
 
-If your app already has a validated feedback endpoint, map the generic widget payload before posting it. This is common when your backend accepts a smaller element shape than the widget collects.
+If your endpoint validates a smaller request body, map the widget payload before sending it:
 
 ```tsx
-import { FixThisWidget, type FixThisWidgetFeedbackPayload } from 'fix-this-widget';
+import type { FixThisWidgetFeedbackPayload } from 'fix-this-widget';
 import { toCompactElementMetadata } from 'fix-this-widget/element-metadata';
-import 'fix-this-widget/styles.css';
 
-function mapFixThisPayload(payload: FixThisWidgetFeedbackPayload) {
+function toFeedbackRequest(payload: FixThisWidgetFeedbackPayload) {
   return {
-    source: 'global_widget',
+    source: 'global_feedback_widget',
     note: payload.note,
-    email: payload.email,
-    page: payload.page,
-    viewport: payload.viewport,
-    scroll: payload.scroll,
-    ts: payload.ts,
-    element: payload.element
-      ? toCompactElementMetadata(payload.element, { extra: { odId: null } })
-      : null,
+    email: payload.email ?? null,
+    pageUrl: payload.page.url,
+    pageTitle: payload.page.title,
+    element: payload.element ? toCompactElementMetadata(payload.element) : null,
   };
-}
-
-export function GlobalFeedbackWidgetHost() {
-  return (
-    <FixThisWidget
-      copy={{ trigger: 'Feedback' }}
-      submitFeedback={async (payload) => {
-        const response = await fetch('/api/feedback', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(mapFixThisPayload(payload)),
-        });
-
-        if (!response.ok) throw new Error('Feedback submission failed');
-      }}
-    />
-  );
 }
 ```
 
-Use the default route helper for new apps. Use `submitFeedback` when you already have `/api/feedback`, strict validators, queues, analytics, or issue creation.
+`toCompactElementMetadata()` returns `{ label, type, selector, text }`. Pass `extra` when your backend requires fixed fields:
 
-## what you receive
+```ts
+payload.element
+  ? toCompactElementMetadata(payload.element, { extra: { odId: null } })
+  : null;
+```
 
-A feedback payload looks roughly like this:
+## Payload
+
+A submitted fix request looks like this:
 
 ```json
 {
   "source": "fix_this_widget",
   "note": "This CTA is confusing",
   "email": "user@example.com",
-  "page": {
-    "url": "https://example.com/pricing",
-    "title": "Pricing"
-  },
-  "viewport": {
-    "w": 1280,
-    "h": 720
-  },
-  "scroll": {
-    "x": 0,
-    "y": 420
-  },
+  "page": { "url": "https://example.com/pricing", "title": "Pricing" },
+  "viewport": { "w": 1280, "h": 720 },
+  "scroll": { "x": 0, "y": 420 },
   "element": {
     "label": "Start trial",
     "type": "Button",
     "selector": "[data-feedback-id=\"start-trial\"]",
     "selectorCandidates": ["[data-feedback-id=\"start-trial\"]", "button:nth-of-type(1)"],
-    "bounds": {
-      "top": 312,
-      "left": 48,
-      "width": 144,
-      "height": 40
-    },
-    "text": "Start trial"
+    "bounds": { "top": 312, "left": 48, "width": 144, "height": 40 },
+    "text": "Start trial",
+    "context": {
+      "path": "main > section:nth-of-type(1) > button:nth-of-type(1)",
+      "target": "<button data-feedback-id=\"start-trial\">Start trial</button>",
+      "parent": "<section aria-label=\"Pricing hero\">Start trial</section>"
+    }
   },
   "ts": "2026-06-03T00:00:00.000Z"
 }
@@ -177,29 +137,9 @@ A feedback payload looks roughly like this:
 
 Enough context to act. Not enough to become creepy.
 
-The selected element payload is intentionally richer than many host backend contracts. If your backend validates request bodies strictly, either accept the richer fields (`selectorCandidates`, `bounds`, `context`) or map the element with `toCompactElementMetadata()` before submitting.
+## Element picker and privacy
 
-## agentic feedback loops
-
-The payload is intentionally shaped so a human team or coding agent can do something useful with it.
-
-A practical loop looks like this:
-
-1. Run the widget in an internal build for your whole team.
-2. Store each fix request as JSONL, a database row, or an issue.
-3. Feed the note, page metadata, and selected element metadata into your agent workflow.
-4. Let the agent propose or open a small fix.
-5. Review, merge, deploy, and keep collecting sharper feedback.
-
-This is the boring version of agentic product improvement: real users point at real UI, the system captures enough context, and automation gets a concrete task instead of vibes.
-
-Start with internal teamwide testing. If the loop is good, open it to beta users. Put it in public production if you dare :P
-
-## element picker
-
-The element picker works without marking up your app. Users can point at an element and the widget attaches bounded metadata for that target.
-
-The picker looks for the best stable selector it can find:
+The picker lets users point at the exact UI they want fixed. It prefers stable selectors in this order:
 
 - `data-feedback-id`
 - test IDs
@@ -208,58 +148,50 @@ The picker looks for the best stable selector it can find:
 - `name`
 - a short tag-path fallback
 
-The attached element payload includes:
+Selected-element metadata includes a readable label, coarse type, best selector, fallback selector candidates, viewport bounds, short visible text, and sanitized nearby context.
 
-- `label`: readable label for the target
-- `type`: coarse target type, such as `Button`, `Link`, `Input`, or `Card/Section`
-- `selector`: best selector candidate
-- `selectorCandidates`: fallback selector candidates
-- `bounds`: selected element position and size in the viewport
-- `text`: normalized visible text, capped at 80 characters
-- `context`: bounded sanitized snippets for the target and, when useful, a nearby landmark parent
+The widget does not capture screenshots, serialize the page DOM, collect class names, collect styles, or include arbitrary `data-*` attributes. Context snippets are normalized, bounded, and limited to safe attributes such as `data-feedback-id`, test IDs, `id`, `aria-label`, `role`, `name`, `type`, `href`, `alt`, and `title`.
 
-You can add `data-feedback-id` to important UI elements for extra precision, but it is optional.
+## Agent workflows
 
-For strict backends, use `toCompactElementMetadata()` to keep only the common fields:
+The payload gives coding agents a concrete UI task: human note, URL, selected element, selector candidates, bounds, and sanitized context. Store requests as JSONL, database rows, issues, or queue items, then hand them to your agent workflow for a small proposed fix.
 
-```ts
-import { toCompactElementMetadata } from 'fix-this-widget/element-metadata';
+## Customize
 
-const element = payload.element
-  ? toCompactElementMetadata(payload.element)
-  : null;
+Copy can be partially overridden:
+
+```tsx
+<FixThisWidget
+  copy={{
+    trigger: 'Feedback',
+    title: 'Send product feedback',
+    noteLabel: 'What should we fix?',
+  }}
+/>
 ```
 
-It returns `{ label, type, selector, text }`. Pass `extra` when your backend needs fixed fields:
+Use `getContext` to add request or session IDs, or to override browser-derived page, viewport, scroll, and timestamp fields:
 
-```ts
-toCompactElementMetadata(payload.element, { extra: { odId: null } });
+```tsx
+<FixThisWidget
+  getContext={() => ({
+    requestId: crypto.randomUUID(),
+    sessionId: sessionStorage.getItem('session-id') ?? undefined,
+  })}
+/>
 ```
 
-## privacy by default
+Partial `page`, `viewport`, and `scroll` overrides are merged with browser defaults.
 
-The widget is deliberately boring in the right places.
-
-It does not capture screenshots. It does not serialize the full page DOM. It does not collect class names, styles, arbitrary `data-*` attributes, or hidden markup.
-
-It only sends bounded metadata that helps identify the selected element: label, type, selector candidates, viewport bounds, scroll position, short visible text, and sanitized nearby context.
-
-## styling
-
-The stylesheet is required:
+The stylesheet is required and namespaced under `.fix-this-widget`:
 
 ```tsx
 import 'fix-this-widget/styles.css';
 ```
 
-The package stylesheet is namespaced under `.fix-this-widget`. Customize colors, spacing, and placement with package-prefixed CSS custom properties:
-
 ```css
 .fix-this-widget {
   --fix-this-widget-primary: #7c3aed;
-  --fix-this-widget-primary-hover: #6d28d9;
-  --fix-this-widget-surface: #fff;
-  --fix-this-widget-radius-xl: 24px;
   --fix-this-widget-right: 32px;
   --fix-this-widget-bottom: 88px;
   --fix-this-widget-z-index: 2000;
@@ -267,56 +199,39 @@ The package stylesheet is namespaced under `.fix-this-widget`. Customize colors,
 }
 ```
 
-The floating trigger, panel, and picker overlay render in a `document.body` portal so transformed host containers do not trap fixed positioning.
+The floating trigger, panel, and picker overlay render through a `document.body` portal so transformed host containers do not trap fixed positioning.
 
-## copy customization
+## API
 
-All user-facing widget text has defaults and can be overridden with the `copy` prop:
+Props:
 
-```tsx
-<FixThisWidget
-  copy={{
-    trigger: 'Report issue',
-    title: 'Send product feedback',
-    noteLabel: 'What should we fix?',
-    notePlaceholder: 'Describe the product issue.',
-    submit: 'Send report',
-    successTitle: 'Report saved',
-    successDescription: 'The team can review this with the selected UI context.',
-  }}
-/>
-```
+- `submitFeedback?: (payload) => Promise<void | unknown>`: override where feedback is sent. Defaults to POST `/api/fix-this-widget/feedback`.
+- `enableElementPicker?: boolean`: enable the optional element picker. Default: `true`.
+- `collectEmail?: boolean`: show the optional email field. Default: `true`.
+- `feedbackSource?: string`: label submissions for your backend or analytics pipeline. Default: `fix_this_widget`.
+- `getContext?: () => FixThisWidgetContextOverride`: add or override page, viewport, scroll, timestamp, request ID, or session ID metadata.
+- `footerContext?: ReactNode`: render helper content below the submit button.
+- `copy?: Partial<FixThisWidgetCopy>`: override labels, helper text, errors, and success messages.
+- `footerSelector?: string`: keep the floating widget above normal semantic footers. Default: `footer, [role="contentinfo"]`.
 
-The object is partial. Any omitted field falls back to the default copy. If your app already calls the action `Feedback`, the smallest override is `copy={{ trigger: 'Feedback' }}`.
-
-## props
-
-| Prop | Type | Default | Description |
-| --- | --- | --- | --- |
-| `submitFeedback` | `(payload) => Promise<void \| unknown>` | POST to `/api/fix-this-widget/feedback` | Override where feedback is sent. |
-| `enableElementPicker` | `boolean` | `true` | Lets users point to the page element they want fixed. |
-| `collectEmail` | `boolean` | `true` | Shows the optional email field. Set `false` to collect notes only. |
-| `feedbackSource` | `string` | `fix_this_widget` | Labels submitted feedback for your backend or analytics pipeline. |
-| `getContext` | `() => FixThisWidgetContextOverride` | page URL, title, viewport, scroll, timestamp | Adds or overrides page, viewport, scroll, timestamp, request ID, or session ID fields. Partial page/viewport/scroll values are merged with browser defaults. |
-| `footerContext` | `ReactNode` | `undefined` | Optional helper/context copy rendered below the submit button. |
-| `copy` | `Partial<FixThisWidgetCopy>` | built-in English copy | Overrides user-facing widget labels, helper text, errors, and success messages. |
-| `footerSelector` | `string` | `footer, [role="contentinfo"]` | Keeps the floating widget above normal semantic footers. |
-
-## exports
+Exports:
 
 - `fix-this-widget`: React component and TypeScript types
-- `fix-this-widget/styles.css`: CSS sidecar required for the widget UI
-- `fix-this-widget/element-metadata`: element metadata helper for tests or host adapters
+- `fix-this-widget/styles.css`: required CSS sidecar
+- `fix-this-widget/element-metadata`: selected-element helper utilities
 - `fix-this-widget/server`: JSONL storage helpers for the default endpoint
 
-## requirements
+## Requirements
 
 - React `>=18.2.0 <21.0.0`
-- A client-rendered React surface. In Next.js App Router, render the widget from a client component.
-- A POST endpoint at `/api/fix-this-widget/feedback` if you use the default submit behavior.
-- A Node 18+ server runtime with a writable filesystem for the default JSONL helper. Use `submitFeedback` for serverless, edge, database, or external storage.
+- A client-rendered React surface
+- The `fix-this-widget/styles.css` import
+- A POST endpoint at `/api/fix-this-widget/feedback` when using the default submit behavior
+- Node 18+ with a writable filesystem when using the JSONL route helper
 
-## example apps
+Use `submitFeedback` for edge runtimes, serverless functions without durable local disk, databases, queues, or external tools.
+
+## Examples
 
 Two Vite examples live under [`examples/`](./examples):
 
@@ -325,38 +240,29 @@ npm run example-simple
 npm run example-full
 ```
 
-`npm run example` is an alias for `npm run example-simple`.
+- [`examples/example-simple`](./examples/example-simple): renders `<FixThisWidget />` with the default endpoint wired to the JSONL helper.
+- [`examples/example-full`](./examples/example-full): passes every adjustable prop, including custom submission, copy, context, footer placement, and footer helper content.
 
-The examples use the local package via `file:../..`:
+Example submissions are written under each example's local `feedback/` directory.
 
-- [`examples/example-simple`](./examples/example-simple): renders `<FixThisWidget />` with the default endpoint. The example's Vite dev server wires that endpoint with `fix-this-widget/server`; production apps need their own POST route or a `submitFeedback` adapter.
-- [`examples/example-full`](./examples/example-full): passes every adjustable widget prop:
-
-```tsx
-<FixThisWidget
-  submitFeedback={submitFullConfigFeedback}
-  footerSelector=".full-config-footer"
-  enableElementPicker={true}
-  collectEmail={true}
-  feedbackSource="full_config_example"
-  getContext={getFullConfigContext}
-  copy={{ trigger: 'Report UI issue', noteLabel: 'What should we fix?' }}
-  footerContext={<span>Custom helper copy for the form footer.</span>}
-/>
-```
-
-Each Vite dev server wires its own example-only feedback endpoint to the package JSONL helper. Submissions are written under that example's local `feedback/` directory. In a real app, add an equivalent backend route or use `submitFeedback`.
-
-## development
+## Development
 
 ```bash
 npm install
+npm run check
+```
+
+`npm run check` runs tests, typecheck, lint, build, package dry run, consumer verification, example builds, and example dependency audits.
+
+Focused commands:
+
+```bash
 npm test
 npm run typecheck
 npm run lint
 npm run build
-npm pack --dry-run --json
 npm run consumer-check
+npm run examples:check
 ```
 
-`npm run build` emits ESM JavaScript, declaration files, server helpers, and `dist/styles.css`. `npm run consumer-check` packs the package and verifies a clean React 18 TypeScript consumer can import the published entry points.
+`npm run consumer-check` packs the package and verifies that a clean React 18 TypeScript consumer can import the public entry points.
