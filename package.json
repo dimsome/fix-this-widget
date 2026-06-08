@@ -1,6 +1,6 @@
 {
   "name": "fix-this-widget",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Standalone React feedback widget for collecting fix requests from a host app.",
   "type": "module",
   "license": "MIT",
