@@ -1,5 +1,8 @@
 # Official "Fix This"-Widget
 
+[![npm version](https://img.shields.io/npm/v/fix-this-widget.svg)](https://www.npmjs.com/package/fix-this-widget)
+[![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
+
 Let users say "fix this" while they are looking at the broken thing.
 
 `fix-this-widget` is a tiny React feedback widget for product teams, indie builders, and internal tools where vague bug reports are expensive. Users click a floating button, write a short note, optionally point at the exact UI element, and your app receives the context needed to fix it.
