@@ -8,6 +8,13 @@ export interface FeedbackElementContext {
   parent: string | null;
 }
 
+export interface CompactFeedbackElementMetadata {
+  label: string;
+  type: FeedbackElementType;
+  selector: string;
+  text: string | null;
+}
+
 export interface FeedbackElementMetadata {
   label: string;
   type: FeedbackElementType;

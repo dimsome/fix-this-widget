@@ -40,10 +40,12 @@ try {
   await writeFile(join(workspace, 'src-app.tsx'), `
 import { FixThisWidget, type FixThisWidgetFeedbackPayload } from 'fix-this-widget';
 import 'fix-this-widget/styles.css';
-import { describeFeedbackElement } from 'fix-this-widget/element-metadata';
+import { describeFeedbackElement, toCompactElementMetadata } from 'fix-this-widget/element-metadata';
 
 const submitFeedback = async (payload: FixThisWidgetFeedbackPayload) => {
   if (!payload.page.url) throw new Error('missing page URL');
+  const compact = toCompactElementMetadata(payload.element ?? describeFeedbackElement(document.createElement('button')));
+  if (!compact.selector) throw new Error('missing compact selector');
 };
 
 describeFeedbackElement(document.createElement('button'));
@@ -52,11 +54,12 @@ export const App = () => <FixThisWidget submitFeedback={submitFeedback} collectE
   await writeFile(join(workspace, 'import-check.mjs'), `
 import { FixThisWidget } from 'fix-this-widget';
 import { createFixThisWidgetHandler } from 'fix-this-widget/server';
-import { describeFeedbackElement } from 'fix-this-widget/element-metadata';
+import { describeFeedbackElement, toCompactElementMetadata } from 'fix-this-widget/element-metadata';
 
 if (typeof FixThisWidget !== 'function') throw new Error('FixThisWidget export missing');
 if (typeof createFixThisWidgetHandler !== 'function') throw new Error('server export missing');
 if (typeof describeFeedbackElement !== 'function') throw new Error('metadata export missing');
+if (typeof toCompactElementMetadata !== 'function') throw new Error('compact metadata export missing');
 `);
 
   run('npm', ['install', tarballPath, 'react@18.2.0', 'react-dom@18.2.0', '@types/react@18.2.79', '@types/react-dom@18.2.25', 'typescript@5.6.3'], { cwd: workspace });

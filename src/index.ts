@@ -1,5 +1,6 @@
 export { FixThisWidget } from './components/FixThisWidget';
 export type {
+  CompactFeedbackElementMetadata,
   FeedbackElementMetadata,
   FeedbackElementType,
   FixThisWidgetContext,

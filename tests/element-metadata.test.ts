@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { describeFeedbackElement } from '../src/metadata/elementMetadata';
+import { describeFeedbackElement, toCompactElementMetadata } from '../src/metadata/elementMetadata';
 
 describe('fix-this-widget element metadata', () => {
   it('prefers public stable selector attributes and bounded sanitized context', () => {
@@ -114,5 +114,45 @@ describe('fix-this-widget element metadata', () => {
       },
     });
     expect(JSON.stringify(metadata)).not.toMatch(/token=secret|#hash|data-private-token|private-reset-link|class=/i);
+  });
+
+  it('converts rich element metadata to a strict-backend compact shape', () => {
+    const link = document.createElement('a');
+    link.setAttribute('data-feedback-id', 'docs-link');
+    link.href = '/docs?token=secret';
+    link.textContent = 'Read docs';
+
+    const rich = describeFeedbackElement(link);
+    const compact = toCompactElementMetadata(rich);
+
+    expect(compact).toEqual({
+      label: 'Docs link',
+      type: 'Link',
+      selector: '[data-feedback-id="docs-link"]',
+      text: 'Read docs',
+    });
+    expect(compact).not.toHaveProperty('selectorCandidates');
+    expect(compact).not.toHaveProperty('bounds');
+    expect(compact).not.toHaveProperty('context');
+  });
+
+  it('adds host fields to compact metadata without mutating the rich metadata', () => {
+    const button = document.createElement('button');
+    button.setAttribute('data-feedback-id', 'submit-order');
+    button.textContent = 'Submit order';
+
+    const rich = describeFeedbackElement(button);
+    const compact = toCompactElementMetadata(rich, { extra: { odId: null } });
+
+    expect(compact).toEqual({
+      odId: null,
+      label: 'Submit order',
+      type: 'Button',
+      selector: '[data-feedback-id="submit-order"]',
+      text: 'Submit order',
+    });
+    expect(rich).toHaveProperty('selectorCandidates');
+    expect(rich).toHaveProperty('bounds');
+    expect(rich).toHaveProperty('context');
   });
 });

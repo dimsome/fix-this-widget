@@ -93,6 +93,50 @@ Want to send feedback to your own API, database, Linear, GitHub Issues, Slack, o
 
 The callback may resolve with `void` or any host response. The widget only needs success or failure.
 
+### existing strict backend
+
+If your app already has a validated feedback endpoint, map the generic widget payload before posting it. This is common when your backend accepts a smaller element shape than the widget collects.
+
+```tsx
+import { FixThisWidget, type FixThisWidgetFeedbackPayload } from 'fix-this-widget';
+import { toCompactElementMetadata } from 'fix-this-widget/element-metadata';
+import 'fix-this-widget/styles.css';
+
+function mapFixThisPayload(payload: FixThisWidgetFeedbackPayload) {
+  return {
+    source: 'global_widget',
+    note: payload.note,
+    email: payload.email,
+    page: payload.page,
+    viewport: payload.viewport,
+    scroll: payload.scroll,
+    ts: payload.ts,
+    element: payload.element
+      ? toCompactElementMetadata(payload.element, { extra: { odId: null } })
+      : null,
+  };
+}
+
+export function GlobalFeedbackWidgetHost() {
+  return (
+    <FixThisWidget
+      copy={{ trigger: 'Feedback' }}
+      submitFeedback={async (payload) => {
+        const response = await fetch('/api/feedback', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(mapFixThisPayload(payload)),
+        });
+
+        if (!response.ok) throw new Error('Feedback submission failed');
+      }}
+    />
+  );
+}
+```
+
+Use the default route helper for new apps. Use `submitFeedback` when you already have `/api/feedback`, strict validators, queues, analytics, or issue creation.
+
 ## what you receive
 
 A feedback payload looks roughly like this:
@@ -132,6 +176,8 @@ A feedback payload looks roughly like this:
 ```
 
 Enough context to act. Not enough to become creepy.
+
+The selected element payload is intentionally richer than many host backend contracts. If your backend validates request bodies strictly, either accept the richer fields (`selectorCandidates`, `bounds`, `context`) or map the element with `toCompactElementMetadata()` before submitting.
 
 ## agentic feedback loops
 
@@ -173,6 +219,22 @@ The attached element payload includes:
 - `context`: bounded sanitized snippets for the target and, when useful, a nearby landmark parent
 
 You can add `data-feedback-id` to important UI elements for extra precision, but it is optional.
+
+For strict backends, use `toCompactElementMetadata()` to keep only the common fields:
+
+```ts
+import { toCompactElementMetadata } from 'fix-this-widget/element-metadata';
+
+const element = payload.element
+  ? toCompactElementMetadata(payload.element)
+  : null;
+```
+
+It returns `{ label, type, selector, text }`. Pass `extra` when your backend needs fixed fields:
+
+```ts
+toCompactElementMetadata(payload.element, { extra: { odId: null } });
+```
 
 ## privacy by default
 
@@ -225,7 +287,7 @@ All user-facing widget text has defaults and can be overridden with the `copy` p
 />
 ```
 
-The object is partial. Any omitted field falls back to the default copy.
+The object is partial. Any omitted field falls back to the default copy. If your app already calls the action `Feedback`, the smallest override is `copy={{ trigger: 'Feedback' }}`.
 
 ## props
 

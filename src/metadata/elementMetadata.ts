@@ -1,4 +1,4 @@
-import type { FeedbackElementMetadata, FeedbackElementType } from '../shared/types';
+import type { CompactFeedbackElementMetadata, FeedbackElementMetadata, FeedbackElementType } from '../shared/types';
 
 const elementTypes = new Set<FeedbackElementType>(['Heading', 'Button', 'Link', 'Input', 'Card/Section', 'Image', 'Text']);
 const stableSelectorAttributes = ['data-feedback-id', 'data-testid', 'data-test', 'data-cy', 'id', 'aria-label', 'name'];
@@ -189,6 +189,23 @@ function boundsFor(element: Element): FeedbackElementMetadata['bounds'] {
     left: Math.round(rect.left),
     width: Math.round(rect.width),
     height: Math.round(rect.height),
+  };
+}
+
+export type CompactElementMetadataOptions<Extra extends Record<string, unknown> = Record<never, never>> = {
+  extra?: Extra;
+};
+
+export function toCompactElementMetadata<Extra extends Record<string, unknown> = Record<never, never>>(
+  element: FeedbackElementMetadata,
+  options: CompactElementMetadataOptions<Extra> = {},
+): CompactFeedbackElementMetadata & Extra {
+  return {
+    ...(options.extra ?? {} as Extra),
+    label: element.label,
+    type: element.type,
+    selector: element.selector,
+    text: element.text,
   };
 }
 
