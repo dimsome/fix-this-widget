@@ -307,18 +307,22 @@
   font-weight: 400;
 }
 
-.fix-this-widget-footer-context p {
+.fix-this-widget-footer-context :where(p, span, div, small) {
   margin: 0;
+  color: inherit;
+  font: inherit;
 }
 
 .fix-this-widget-footer-context strong {
   color: inherit;
+  font-size: inherit;
+  line-height: inherit;
   font-weight: var(--fix-this-widget-fw-semibold, 600);
 }
 
 .fix-this-widget-footer-context a {
   color: inherit;
-  font-size: inherit;
+  font: inherit;
 }
 
 .fix-this-widget-success {

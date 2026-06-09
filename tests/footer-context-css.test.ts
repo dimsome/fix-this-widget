@@ -16,7 +16,7 @@ function cssBlock(selector: string) {
 describe('footer context CSS contract', () => {
   it('renders host-provided footer helper copy as quiet package-owned support text', () => {
     const footer = cssBlock('.fix-this-widget-footer-context');
-    const paragraph = cssBlock('.fix-this-widget-footer-context p');
+    const inlineText = cssBlock('.fix-this-widget-footer-context :where(p, span, div, small)');
     const strong = cssBlock('.fix-this-widget-footer-context strong');
     const link = cssBlock('.fix-this-widget-footer-context a');
 
@@ -24,11 +24,14 @@ describe('footer context CSS contract', () => {
     expect(footer).toContain('font-size: 11.5px;');
     expect(footer).toContain('line-height: 1.45;');
     expect(footer).toContain('font-weight: 400;');
-    expect(paragraph).toContain('margin: 0;');
+    expect(inlineText).toContain('margin: 0;');
+    expect(inlineText).toContain('color: inherit;');
+    expect(inlineText).toContain('font: inherit;');
     expect(strong).toContain('color: inherit;');
+    expect(strong).toContain('font-size: inherit;');
+    expect(strong).toContain('line-height: inherit;');
     expect(strong).toContain('font-weight: var(--fix-this-widget-fw-semibold, 600);');
-    expect(strong).not.toMatch(/font-size\s*:/);
     expect(link).toContain('color: inherit;');
-    expect(link).toContain('font-size: inherit;');
+    expect(link).toContain('font: inherit;');
   });
 });
