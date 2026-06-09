@@ -304,6 +304,21 @@
   color: var(--fix-this-widget-fg-3, #6C7680);
   font-size: 11.5px;
   line-height: 1.45;
+  font-weight: 400;
+}
+
+.fix-this-widget-footer-context p {
+  margin: 0;
+}
+
+.fix-this-widget-footer-context strong {
+  color: inherit;
+  font-weight: var(--fix-this-widget-fw-semibold, 600);
+}
+
+.fix-this-widget-footer-context a {
+  color: inherit;
+  font-size: inherit;
 }
 
 .fix-this-widget-success {
